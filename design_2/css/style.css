@@ -126,11 +126,11 @@ body {
 .hero-frame {
   position: relative;
   z-index: 2;
-  width: min(600px, 92vw);
-  aspect-ratio: 1 / 1;
+  width: min(500px, 86vw);
+  aspect-ratio: 3 / 4;
 }
 
-/* the white squircle — appears FIRST */
+/* the white rounded frame — appears FIRST */
 .frame-card {
   position: relative;
   z-index: 2;
@@ -138,7 +138,7 @@ body {
   height: 100%;
   padding: 7px;
   background: #fff;
-  border-radius: 42% 44% 40% 42% / 44% 40% 44% 42%;
+  border-radius: 42px;
   box-shadow: 0 16px 44px rgba(40,20,80,0.4);
   opacity: 0;
   animation: frameReveal 1.3s cubic-bezier(0.2, 0.8, 0.3, 1.15) 0.4s forwards;
@@ -150,7 +150,7 @@ body {
   height: 100%;
   object-fit: cover;
   object-position: center 30%;
-  border-radius: 40% 42% 38% 40% / 42% 38% 42% 40%;
+  border-radius: 36px;
   opacity: 0;
   animation: photoReveal 1.3s ease 1.7s forwards;
 }
