@@ -24,8 +24,10 @@ document.getElementById('rsvpForm').addEventListener('submit', async (e) => {
     attendance: form.attendance.value,
     lastName:   form.lastName.value,
     firstName:  form.firstName.value,
+    coName1:    form.coName1.value,
+    coName2:    form.coName2.value,
+    coName3:    form.coName3.value,
     guest:      form.guest.value,
-    contact:    form.contact.value,
     allergy:    form.allergy.value,
     message:    form.message.value,
   };

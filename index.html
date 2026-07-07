@@ -6,8 +6,8 @@
   <title>Wedding Invitation | Fumito & Risa</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Great+Vibes&family=Playfair+Display:ital,wght@1,500;1,600&family=Noto+Serif+JP:wght@200;300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=36">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Great+Vibes&family=Fredoka:wght@400;500;600&family=Noto+Serif+JP:wght@200;300;400;500&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=72">
 </head>
 <body>
 
@@ -16,22 +16,22 @@
     <div class="hero-sky"></div>
     <div class="hero-stars" id="heroStars"></div>
     <div class="hero-balloons" id="heroBalloons"></div>
+    <img class="hero-bird" src="img/bird.png" alt="" aria-hidden="true">
 
-    <div class="hero-content">
-      <p class="hero-names">
-        Fumito
-        <span class="hero-ampersand">&amp;</span>
-        Risa
-      </p>
-      <p class="hero-wedding">Happy Wedding</p>
-      <p class="hero-date">SEPTEMBER &nbsp;20, &nbsp;2026</p>
-      <p class="hero-venue">ディズニーアンバサダーホテル &nbsp;2F ファンタジア</p>
-    </div>
-
-    <!-- PHOTO FRAME: rounded squircle -->
+    <!-- PHOTO FRAME with overlaid text -->
     <div class="hero-frame">
       <div class="frame-card">
         <img class="frame-photo" src="img/main_image_3.jpg" alt="Fumito & Risa">
+      </div>
+      <div class="hero-content">
+        <p class="hero-names">
+          Fumito
+          <span class="hero-ampersand">&#xF63A;</span>
+          Risa
+        </p>
+        <p class="hero-wedding">Wedding</p>
+        <p class="hero-date">SEPTEMBER &nbsp;20, &nbsp;2026</p>
+        <p class="hero-venue">ディズニーアンバサダーホテル &nbsp;2F ファンタジア</p>
       </div>
     </div>
 
@@ -43,11 +43,17 @@
     <p class="section-label">Invitation</p>
     <div class="section-divider"><span class="divider-icon">✦ ✦ ✦</span></div>
     <p class="invitation-text">
-      謹んでご挨拶申し上げます<br>
-      このたび 私たちは結婚式を挙げることとなりました<br>
+      季節が夏色に染まる頃となりました<br>
+      このたび　私たちは結婚式を挙げることになりました<br>
+      つきましては　お世話になっている皆様をお招きして<br>
+      心ばかりの祝宴を　催したいと存じます<br>
+      ご多用中まこと恐縮でございますが<br>
+      ぜひご出席くださいますようお願い申し上げます<br>
       <br>
-      ご多用のところ 誠に恐縮ではございますが<br>
-      ぜひご臨席を賜りたく ご案内申し上げます
+      2026年7月吉日<br>
+      <br>
+      杉本　史<br>
+      篠﨑　理紗
     </p>
   </div>
 
@@ -72,29 +78,33 @@
       <div class="profile-card groom">
         <div class="profile-head">
           <div class="profile-avatar">
-            <img class="profile-img" src="img/fumito.png" alt="Fumito">
+            <img class="profile-img" src="img/fumito_sq.jpg" alt="Fumito">
           </div>
           <div class="profile-info">
             <p class="profile-role">Groom</p>
-            <p class="profile-name">Fumito</p>
-            <img class="profile-icon-img" src="img/honey.png" alt="honey">
+            <div class="name-icon-row">
+              <p class="profile-name">Fumito</p>
+              <img class="profile-icon-img" src="img/pooh_face.png" alt="Pooh">
+            </div>
           </div>
         </div>
-        <p class="profile-message">このたび理紗さんと結婚する運びとなりました<br>多くのご縁に恵まれ 本日を迎えることができました<br>今後とも私たちを温かく見守っていただけますと幸いです</p>
+        <p class="profile-message">これまでたくさんのご縁に恵まれ<br>今日という日を迎えられることを嬉しく思います<br><br>皆さまへの感謝の気持ちを込めて<br>当日お会いできることを心より楽しみにしています！</p>
       </div>
 
       <div class="profile-card bride">
         <div class="profile-head">
           <div class="profile-avatar">
-            <img class="profile-img" src="img/risa.png" alt="Risa">
+            <img class="profile-img" src="img/risa_sq.jpg" alt="Risa">
           </div>
           <div class="profile-info">
             <p class="profile-role">Bride</p>
-            <p class="profile-name">Risa</p>
-            <p class="profile-icon">🐾</p>
+            <div class="name-icon-row">
+              <p class="profile-name">Risa</p>
+              <img class="profile-icon-img" src="img/pluto_face.png?v=2" alt="Pluto">
+            </div>
           </div>
         </div>
-        <p class="profile-message">メッセージをここに入力してください</p>
+        <p class="profile-message">憧れのディズニーアンバサダーホテルで<br>結婚式を挙げることになりました<br><br>大好きなものをたくさん詰め込んだ<br>私たちらしい一日になるよう<br>心を込めて準備を進めています！<br><br>当日お会いできることを心より楽しみにしています</p>
       </div>
     </div>
   </div>
@@ -176,7 +186,7 @@
     <div class="section-divider"><span class="divider-icon">✦ ✦ ✦</span></div>
     <div class="form-card">
       <p class="form-title">出欠のご回答</p>
-      <p class="form-deadline">回答期限：2026年8月20日</p>
+      <p class="form-deadline">回答期限：2026年8月6日</p>
 
       <form id="rsvpForm">
 
@@ -201,6 +211,15 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label">ご連名<span class="label-note">（ご一緒に出席される方）</span></label>
+          <div class="coname-list">
+            <input type="text" name="coName1" placeholder="ご連名 1">
+            <input type="text" name="coName2" placeholder="ご連名 2">
+            <input type="text" name="coName3" placeholder="ご連名 3">
+          </div>
+        </div>
+
+        <div class="form-group">
           <label class="form-label">ゲスト<span class="required">必須</span></label>
           <select name="guest" required>
             <option value="">選択してください</option>
@@ -210,18 +229,13 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">ご連絡先</label>
-          <input type="text" name="contact" placeholder="電話番号またはメールアドレス">
-        </div>
-
-        <div class="form-group">
           <label class="form-label">アレルギーについて</label>
           <input type="text" name="allergy" placeholder="アレルギーがある場合はご記入ください">
         </div>
 
         <div class="form-group">
           <label class="form-label">メッセージ</label>
-          <textarea name="message" placeholder="おふたりへのメッセージをどうぞ"></textarea>
+          <textarea name="message" placeholder="ご自由にお書きください"></textarea>
         </div>
 
         <button type="submit" class="submit-btn" id="submitBtn">SEND</button>
@@ -231,9 +245,9 @@
     </div>
   </div>
 
-  <footer>Fumito &amp; RISA &nbsp;·&nbsp; 2026.09.20</footer>
+  <footer>Fumito &amp; Risa &nbsp;·&nbsp; 2026.09.20</footer>
 
-  <script src="js/main.js?v=25"></script>
+  <script src="js/main.js?v=70"></script>
 
 </body>
 </html>
