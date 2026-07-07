@@ -736,16 +736,13 @@ body {
   line-height: 1;
 }
 
-/* name + character face side by side */
+/* name with the character face stacked underneath */
 .name-icon-row {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.7rem;
+  gap: 0.5rem;
 }
-
-.bride .name-icon-row { flex-direction: row-reverse; }
 
 .name-icon-row .profile-name { margin: 0; }
 
