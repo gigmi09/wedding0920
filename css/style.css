@@ -741,7 +741,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.7rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.7rem;
 }
 
 .bride .name-icon-row { flex-direction: row-reverse; }
@@ -753,6 +754,15 @@ body {
   height: 72px;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+/* keep the profile cards tidy on small screens */
+@media (max-width: 480px) {
+  .profile-card { padding: 22px 16px; }
+  .profile-head { gap: 0.7rem; }
+  .profile-img { width: 104px; height: 104px; }
+  .profile-name { font-size: 1.3rem; }
+  .profile-icon-img { width: 58px; height: 58px; }
 }
 
 .profile-message {
