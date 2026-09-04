@@ -10,7 +10,8 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
 // Form submit
-document.getElementById('rsvpForm').addEventListener('submit', async (e) => {
+const rsvpForm = document.getElementById('rsvpForm');
+if (rsvpForm) rsvpForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
   const result = document.getElementById('formResult');

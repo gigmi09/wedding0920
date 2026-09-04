@@ -989,3 +989,37 @@ footer {
   position: relative;
   z-index: 1;
 }
+
+/* ── RSVP 受付終了 ── */
+.form-closed {
+  text-align: center;
+  padding: 2.6rem 1.6rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--pink-soft), #e0e8ff);
+}
+
+.form-closed-title {
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  color: var(--purple);
+  margin-bottom: 1.3rem;
+}
+
+.form-closed-text {
+  font-size: 0.85rem;
+  line-height: 2.1;
+  color: var(--text);
+}
+
+.form-closed-note {
+  margin-top: 1.9rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.75);
+  font-size: 0.74rem;
+  line-height: 1.95;
+  color: var(--text-light);
+}
+
+@media (max-width: 480px) {
+  .form-closed { padding: 2rem 1.1rem; }
+}
