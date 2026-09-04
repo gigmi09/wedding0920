@@ -95,11 +95,27 @@ function json(obj) {
 
 
 /**
- * 初回だけエディタから手動で 1 回実行してください。
- * ドライブへのアクセス許可を出すのと、FOLDER_ID が正しいかの確認を兼ねます。
- * 実行ログにフォルダ名が出れば成功です。
+ * 初回とスコープ変更後に、エディタから手動で 1 回実行してください。
+ *
+ * 1. FOLDER_ID が正しいか
+ * 2. ドライブへの「書き込み」権限が下りているか
+ * の両方を確認します。実行ログに「セットアップ完了」と出れば成功です。
+ *
+ * 権限の確認画面が出たら承認してください。承認を求められずに
+ * 403 insufficient authentication scopes が出る場合は、
+ * appsscript.json の oauthScopes が反映されていません。
  */
 function setupCheck() {
   const folder = DriveApp.getFolderById(FOLDER_ID);
   Logger.log('保存先フォルダ: ' + folder.getName());
+
+  // 実際に書き込み用のアップロードURLを発行して、権限まで確かめる
+  const url = createResumableSession('setup_test.txt', 'text/plain');
+  Logger.log('アップロードURLの発行: 成功');
+
+  // 発行しただけのセッションは中身を送らなければファイルになりません。
+  // 念のため明示的に取り消しておきます。
+  UrlFetchApp.fetch(url, { method: 'delete', muteHttpExceptions: true });
+
+  Logger.log('セットアップ完了。ページから使えます。');
 }
