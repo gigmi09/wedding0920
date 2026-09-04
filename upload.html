@@ -103,6 +103,49 @@ h1 {
 
 .hint { font-size: 0.72rem; color: var(--text-light); margin-top: 16px; letter-spacing: 0.05em; line-height: 1.9; }
 
+.tips {
+  margin-top: 26px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid var(--pink-soft);
+  text-align: left;
+}
+
+.tips li {
+  list-style: none;
+  position: relative;
+  padding-left: 18px;
+  font-size: 0.72rem;
+  line-height: 1.95;
+  color: var(--text-light);
+}
+
+.tips li + li { margin-top: 7px; }
+
+.tips li::before {
+  content: '✦';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--purple);
+  font-size: 0.62rem;
+}
+
+.now-uploading {
+  display: none;
+  margin-top: 22px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--pink-soft), #e0e8ff);
+  color: var(--purple);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+}
+.now-uploading.show { display: block; }
+
 /* ── ファイル一覧 ── */
 .list { margin-top: 32px; text-align: left; display: none; }
 .list.show { display: block; }
@@ -197,6 +240,16 @@ footer { margin-top: 44px; font-size: 0.66rem; letter-spacing: 0.16em; color: va
 
   <p class="hint">写真ライブラリから何枚でも選べます<br>動画もそのままお送りいただけます</p>
 
+  <ul class="tips">
+    <li>送信中は画面を消さずにそのままお待ちください</li>
+    <li>会場のWi-Fiが混み合うときは、Wi-Fiを切ってお試しください</li>
+    <li>本数が多いときは、何回かに分けると失敗しにくいです</li>
+  </ul>
+
+  <div class="now-uploading" id="nowUploading">
+    送信中です。画面を消さずにお待ちください。
+  </div>
+
   <div class="list" id="list"></div>
   <div class="result" id="result"></div>
 
@@ -214,8 +267,10 @@ const UPLOAD_GAS_URL = 'https://script.google.com/macros/s/AKfycbzUZw-dUX4tkMTBS
 const pickBtn = document.getElementById('pickBtn');
 const fileInput = document.getElementById('fileInput');
 const listEl = document.getElementById('list');
+const nowEl = document.getElementById('nowUploading');
 const resultEl = document.getElementById('result');
 
+const MAX_ATTEMPTS = 3;
 let uploading = false;
 
 pickBtn.addEventListener('click', () => {
@@ -270,6 +325,7 @@ async function start(files) {
   pickBtn.disabled = true;
   resultEl.className = 'result';
   listEl.classList.add('show');
+  nowEl.classList.add('show');
   window.addEventListener('beforeunload', warn);
 
   let ok = 0;
@@ -279,23 +335,7 @@ async function start(files) {
   for (const file of files) {
     const row = addRow(file);
     try {
-      row.state.textContent = '準備中';
-      const session = await createSession(file);
-
-      row.state.textContent = '0%';
-      try {
-        await putFile(session.uploadUrl, file, (p) => {
-          row.state.textContent = p + '%';
-          row.fill.style.width = p + '%';
-        });
-      } catch (err) {
-        // Google は完了の応答にブラウザ向けの許可ヘッダを付けてこないため、
-        // 送信が成功していても失敗として飛んでくることがある。
-        // 実際に保存できたかを確認してから判断する。
-        row.state.textContent = '確認中';
-        const saved = await verify(session.name);
-        if (!saved) throw err;
-      }
+      await uploadOne(file, row);
 
       row.root.classList.add('done');
       row.state.textContent = '完了';
@@ -315,6 +355,7 @@ async function start(files) {
   uploading = false;
   pickBtn.disabled = false;
   fileInput.value = '';
+  nowEl.classList.remove('show');
   window.removeEventListener('beforeunload', warn);
 
   if (failed.length === 0) {
@@ -368,6 +409,55 @@ async function createSession(file) {
   }
   return { uploadUrl: data.uploadUrl, name: data.name || '' };
 }
+
+/* 1ファイルを送る。失敗しても最大3回まで自動でやり直す */
+async function uploadOne(file, row) {
+  let lastError;
+  let lastName = '';
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    // 前回の試行が実は保存できていた場合、二重に送らない
+    if (lastName && (await verify(lastName))) return;
+
+    try {
+      row.state.textContent = attempt === 1 ? '準備中' : '再送信中';
+      row.fill.style.width = '0%';
+
+      const session = await createSession(file);
+      lastName = session.name;
+
+      row.state.textContent = '0%';
+      try {
+        await putFile(session.uploadUrl, file, (p) => {
+          row.state.textContent = p + '%';
+          row.fill.style.width = p + '%';
+        });
+      } catch (err) {
+        // Google は完了の応答にブラウザ向けの許可ヘッダを付けてこないため、
+        // 送信が成功していても失敗として飛んでくることがある。
+        // 実際に保存できたかを確認してから判断する。
+        row.state.textContent = '確認中';
+        if (!(await verify(session.name))) throw err;
+      }
+
+      return; // 成功
+    } catch (err) {
+      lastError = err;
+      if (attempt < MAX_ATTEMPTS) {
+        row.state.textContent = 'やり直します';
+        await sleep(attempt * 2500);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 
 /* 本当に Drive に保存できたかを GAS に問い合わせる */
 async function verify(name) {
