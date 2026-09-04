@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#fffaf3">
+<title>写真・動画のご提供 | Fumito &amp; Risa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #ff4f9d;
+  --pink-soft: #ffd4e6;
+  --purple: #a641e0;
+  --grape: #7b34e0;
+  --aqua: #1fc8c2;
+  --gold: #ffbe2e;
+  --cream: #fffaf3;
+  --text: #3f3357;
+  --text-light: #8a7fa0;
+  --white: #ffffff;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--text);
+  background: var(--cream);
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255,212,230,0.55), transparent 42%),
+    radial-gradient(circle at 88% 14%, rgba(166,65,224,0.14), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(31,200,194,0.14), transparent 55%);
+  background-attachment: fixed;
+  min-height: 100svh;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px calc(env(safe-area-inset-bottom, 0px) + 48px);
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap { width: 100%; max-width: 460px; text-align: center; }
+
+.script {
+  font-family: 'Great Vibes', cursive;
+  font-size: 2.1rem;
+  color: var(--purple);
+  line-height: 1.2;
+}
+
+.date {
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  color: var(--text-light);
+  margin-top: 6px;
+}
+
+h1 {
+  font-size: 1.02rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  margin-top: 30px;
+  line-height: 1.9;
+}
+
+.lead {
+  font-size: 0.8rem;
+  line-height: 2;
+  color: var(--text-light);
+  margin-top: 14px;
+}
+
+/* ── アップロードボタン ── */
+.upload-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 96px;
+  margin: 40px 0 0;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1.32rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--pink), var(--purple) 55%, var(--grape));
+  box-shadow: 0 14px 34px rgba(166,65,224,0.34);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  touch-action: manipulation;
+}
+
+.upload-btn:active { transform: scale(0.975); box-shadow: 0 8px 20px rgba(166,65,224,0.3); }
+.upload-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+.upload-btn svg { width: 27px; height: 27px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+.hint { font-size: 0.72rem; color: var(--text-light); margin-top: 16px; letter-spacing: 0.05em; line-height: 1.9; }
+
+/* ── ファイル一覧 ── */
+.list { margin-top: 32px; text-align: left; display: none; }
+.list.show { display: block; }
+
+.item {
+  background: rgba(255,255,255,0.9);
+  border: 1px solid var(--pink-soft);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 18px rgba(150,110,200,0.09);
+}
+
+.item-head { display: flex; align-items: center; gap: 10px; }
+.item-name {
+  flex: 1; min-width: 0;
+  font-size: 0.78rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.item-state { font-size: 0.7rem; color: var(--text-light); white-space: nowrap; letter-spacing: 0.04em; }
+.item.done .item-state { color: var(--aqua); font-weight: 500; }
+.item.error .item-state { color: var(--pink); font-weight: 500; }
+
+.bar { height: 5px; border-radius: 99px; background: var(--pink-soft); margin-top: 10px; overflow: hidden; }
+.bar span { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--pink), var(--purple)); transition: width 0.25s ease; }
+.item.done .bar span { background: linear-gradient(90deg, var(--aqua), var(--gold)); }
+.item.error .bar span { background: var(--pink); }
+
+/* ── 完了メッセージ ── */
+.result {
+  display: none;
+  margin-top: 26px;
+  padding: 22px 18px;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  line-height: 2;
+  background: linear-gradient(135deg, var(--pink-soft), #e0e8ff);
+  color: var(--purple);
+}
+.result.show { display: block; }
+.result.bad { background: #fdecf2; color: #d33b73; }
+
+.retry {
+  -webkit-appearance: none; appearance: none;
+  margin-top: 14px; padding: 11px 26px;
+  border: 1px solid var(--purple); border-radius: 999px;
+  background: transparent; color: var(--purple);
+  font-family: inherit; font-size: 0.78rem; letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+footer { margin-top: 44px; font-size: 0.66rem; letter-spacing: 0.16em; color: var(--text-light); }
+
+@media (max-width: 380px) {
+  .upload-btn { font-size: 1.18rem; min-height: 86px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <p class="script">Fumito &amp; Risa</p>
+  <p class="date">2026 . 09 . 20</p>
+
+  <h1>当日のお写真・動画を<br>お寄せください</h1>
+  <p class="lead">
+    みなさまが撮ってくださった一枚が<br>
+    わたしたちの宝物になります
+  </p>
+
+  <button type="button" class="upload-btn" id="pickBtn">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 16V4"></path>
+      <path d="M7 9l5-5 5 5"></path>
+      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
+    </svg>
+    アップロード
+  </button>
+
+  <input type="file" id="fileInput" accept="image/*,video/*" multiple hidden>
+
+  <p class="hint">写真ライブラリから何枚でも選べます<br>動画もそのままお送りいただけます</p>
+
+  <div class="list" id="list"></div>
+  <div class="result" id="result"></div>
+
+  <footer>THANK YOU</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   Google Apps Script のウェブアプリ URL をここに貼ってください
+   （デプロイ後に発行される .../exec で終わる URL）
+   ============================================================ */
+const UPLOAD_GAS_URL = 'PASTE_YOUR_GAS_WEB_APP_URL_HERE';
+
+const pickBtn = document.getElementById('pickBtn');
+const fileInput = document.getElementById('fileInput');
+const listEl = document.getElementById('list');
+const resultEl = document.getElementById('result');
+
+let uploading = false;
+
+pickBtn.addEventListener('click', () => {
+  if (uploading) return;
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+  const files = Array.from(fileInput.files || []);
+  fileInput.value = '';
+  if (files.length) start(files);
+});
+
+function show(msg, bad) {
+  resultEl.innerHTML = msg;
+  resultEl.className = 'result show' + (bad ? ' bad' : '');
+}
+
+function fmtSize(n) {
+  if (n < 1024 * 1024) return (n / 1024).toFixed(0) + ' KB';
+  return (n / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function addRow(file) {
+  const el = document.createElement('div');
+  el.className = 'item';
+  el.innerHTML =
+    '<div class="item-head">' +
+      '<span class="item-name"></span>' +
+      '<span class="item-state">待機中</span>' +
+    '</div>' +
+    '<div class="bar"><span></span></div>';
+  el.querySelector('.item-name').textContent = file.name + '（' + fmtSize(file.size) + '）';
+  listEl.appendChild(el);
+  return {
+    root: el,
+    state: el.querySelector('.item-state'),
+    fill: el.querySelector('.bar span'),
+  };
+}
+
+async function start(files) {
+  if (UPLOAD_GAS_URL.indexOf('PASTE_YOUR') === 0) {
+    show('アップロード先がまだ設定されていません。<br>新郎新婦までお知らせください。', true);
+    return;
+  }
+
+  uploading = true;
+  pickBtn.disabled = true;
+  resultEl.className = 'result';
+  listEl.classList.add('show');
+  window.addEventListener('beforeunload', warn);
+
+  let ok = 0;
+  const failed = [];
+
+  for (const file of files) {
+    const row = addRow(file);
+    try {
+      row.state.textContent = '準備中';
+      const uploadUrl = await createSession(file);
+
+      row.state.textContent = '0%';
+      await putFile(uploadUrl, file, (p) => {
+        row.state.textContent = p + '%';
+        row.fill.style.width = p + '%';
+      });
+
+      row.root.classList.add('done');
+      row.state.textContent = '完了';
+      row.fill.style.width = '100%';
+      ok++;
+    } catch (err) {
+      row.root.classList.add('error');
+      row.state.textContent = '失敗';
+      row.fill.style.width = '100%';
+      failed.push(file.name);
+    }
+  }
+
+  uploading = false;
+  pickBtn.disabled = false;
+  window.removeEventListener('beforeunload', warn);
+
+  if (failed.length === 0) {
+    show(
+      ok + '件をお送りいただきました<br>' +
+      'ありがとうございます！<br>' +
+      '続けてアップロードもできます'
+    );
+  } else {
+    show(
+      ok + '件は完了しましたが、' + failed.length + '件が失敗しました。<br>' +
+      '電波の良い場所でもう一度お試しください。' +
+      '<br><button type="button" class="retry" onclick="document.getElementById(\'pickBtn\').click()">もう一度選ぶ</button>',
+      true
+    );
+  }
+}
+
+function warn(e) {
+  e.preventDefault();
+  e.returnValue = '';
+}
+
+/* GAS に依頼して Drive の再開可能アップロード用 URL を発行してもらう */
+async function createSession(file) {
+  const res = await fetch(UPLOAD_GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'start',
+      name: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      size: file.size,
+    }),
+  });
+  if (!res.ok) throw new Error('session http ' + res.status);
+  const data = await res.json();
+  if (!data.ok || !data.uploadUrl) throw new Error(data.error || 'no upload url');
+  return data.uploadUrl;
+}
+
+/* ファイル本体はブラウザから Google へ直接送る（GAS を経由しないので大きな動画も通る） */
+function putFile(uploadUrl, file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl, true);
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.min(99, Math.floor((e.loaded / e.total) * 100)));
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error('upload http ' + xhr.status));
+    };
+    xhr.onerror = () => reject(new Error('network error'));
+    xhr.ontimeout = () => reject(new Error('timeout'));
+    xhr.send(file);
+  });
+}
+</script>
+
+</body>
+</html>
