@@ -32,6 +32,9 @@ function doPost(e) {
 
     // 1) アップロード先のURLを発行する
     if (req.action === 'start') {
+      if (!isMediaRequest(req.name, req.mimeType)) {
+        return json({ ok: false, error: '写真と動画のみお送りいただけます' });
+      }
       const name = buildFileName(req.name);
       return json({
         ok: true,
@@ -49,6 +52,23 @@ function doPost(e) {
   } catch (err) {
     return json({ ok: false, error: String(err) });
   }
+}
+
+
+/**
+ * 写真か動画かを判定する。
+ * ページ側でも弾いているが、ページを経由しない送信を防ぐためここでも見る。
+ * 端末によっては種類が空で届くので、その場合は拡張子で判断する。
+ */
+const MEDIA_EXT = /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic|heif|mov|mp4|m4v|3gp|avi|mkv|webm|mpe?g|wmv)$/i;
+
+function isMediaRequest(name, mimeType) {
+  const t = String(mimeType || '').toLowerCase();
+  if (t.indexOf('image/') === 0 || t.indexOf('video/') === 0) return true;
+  if (!t || t === 'application/octet-stream') {
+    return MEDIA_EXT.test(String(name || ''));
+  }
+  return false;
 }
 
 

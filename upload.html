@@ -270,6 +270,16 @@ const nowEl = document.getElementById('nowUploading');
 const resultEl = document.getElementById('result');
 
 const MAX_ATTEMPTS = 3;
+
+// 種類が空で渡ってくる端末があるため、拡張子でも判断できるようにする
+const MEDIA_EXT = /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic|heif|mov|mp4|m4v|3gp|avi|mkv|webm|mpe?g|wmv)$/i;
+
+function isMedia(file) {
+  const t = String(file.type || '').toLowerCase();
+  if (t.indexOf('image/') === 0 || t.indexOf('video/') === 0) return true;
+  if (!t) return MEDIA_EXT.test(file.name || '');
+  return false;
+}
 let uploading = false;
 
 pickBtn.addEventListener('click', () => {
@@ -278,10 +288,14 @@ pickBtn.addEventListener('click', () => {
 });
 
 fileInput.addEventListener('change', () => {
-  const files = Array.from(fileInput.files || []);
+  const all = Array.from(fileInput.files || []);
   // 送信し終わるまで input は空にしない。
   // iOS では先に空にすると写真の実体が読めなくなることがある。
-  if (files.length) start(files);
+  if (!all.length) return;
+
+  const files = all.filter(isMedia);
+  const skipped = all.filter((f) => !isMedia(f));
+  start(files, skipped);
 });
 
 function show(msg, bad) {
@@ -314,9 +328,30 @@ function addRow(file) {
   };
 }
 
-async function start(files) {
+function markSkipped(file) {
+  const row = addRow(file);
+  row.root.classList.add('error');
+  row.state.textContent = '対象外';
+  row.fill.style.width = '100%';
+  row.err.textContent = '写真と動画のみお送りいただけます';
+}
+
+
+async function start(files, skipped) {
+  skipped = skipped || [];
+
   if (UPLOAD_GAS_URL.indexOf('PASTE_YOUR') === 0) {
     show('アップロード先がまだ設定されていません。<br>新郎新婦までお知らせください。', true);
+    return;
+  }
+
+  if (!files.length) {
+    listEl.classList.add('show');
+    skipped.forEach(markSkipped);
+    fileInput.value = '';
+    show('写真と動画のみお送りいただけます。<br>選び直してください。' +
+      '<button type="button" class="retry" onclick="document.getElementById(\'pickBtn\').click()">もう一度選ぶ</button>',
+      true);
     return;
   }
 
@@ -325,6 +360,7 @@ async function start(files) {
   resultEl.className = 'result';
   listEl.classList.add('show');
   nowEl.classList.add('show');
+  skipped.forEach(markSkipped);
   window.addEventListener('beforeunload', warn);
 
   let ok = 0;
@@ -357,18 +393,22 @@ async function start(files) {
   nowEl.classList.remove('show');
   window.removeEventListener('beforeunload', warn);
 
+  const skipNote = skipped.length
+    ? '<br>写真と動画以外の' + skipped.length + '件は送っていません'
+    : '';
+
   if (failed.length === 0) {
     show(
       ok + '件をお送りいただきました<br>' +
       'ありがとうございます！<br>' +
-      '続けてアップロードもできます'
+      '続けてアップロードもできます' + skipNote
     );
   } else {
     const esc = document.createElement('span');
     esc.textContent = firstError;
     show(
       ok + '件は完了しましたが、' + failed.length + '件が失敗しました。<br>' +
-      '電波の良い場所でもう一度お試しください。' +
+      '電波の良い場所でもう一度お試しください。' + skipNote +
       '<span style="display:block;margin-top:10px;font-size:0.7rem;opacity:0.85;word-break:break-all">' +
       esc.innerHTML + '</span>' +
       '<button type="button" class="retry" onclick="document.getElementById(\'pickBtn\').click()">もう一度選ぶ</button>',
