@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Wedding Movie | Fumito &amp; Risa</title>
+  <style>
+    :root {
+      --vh: 100vh;
+    }
+    @supports (height: 100dvh) {
+      :root { --vh: 100dvh; }
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: var(--vh);
+      background: #000;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* 画面いっぱい ＝ 16:9を保ったまま最大サイズ */
+    .player {
+      position: relative;
+      width: min(100vw, calc(var(--vh) * 16 / 9));
+      height: min(var(--vh), calc(100vw * 9 / 16));
+      background: #000;
+    }
+
+    .player iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    /* 縦向きのときだけ「横にしてね」を表示 */
+    .rotate-hint {
+      position: fixed;
+      left: 50%;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+      transform: translateX(-50%);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: fadeIn 0.6s ease both;
+    }
+
+    .rotate-hint svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: tilt 2.4s ease-in-out infinite;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    @keyframes tilt {
+      0%, 55%, 100% { transform: rotate(0deg); }
+      75%           { transform: rotate(-90deg); }
+    }
+
+    @media (orientation: portrait) {
+      .rotate-hint { display: flex; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rotate-hint, .rotate-hint svg { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player">
+    <iframe
+      src="https://www.youtube.com/embed/gzOqJsWOEmI?playsinline=1&rel=0&modestbranding=1"
+      title="Wedding movie｜Fumito &amp; Risa"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <div class="rotate-hint">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="7" y="2.5" width="10" height="19" rx="2"></rect>
+      <line x1="10.5" y1="19" x2="13.5" y2="19"></line>
+    </svg>
+    <span>横向きにすると大きく見られます</span>
+  </div>
+
+</body>
+</html>
