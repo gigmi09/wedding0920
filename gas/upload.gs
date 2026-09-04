@@ -6,6 +6,11 @@
  *
  * ファイル本体は GAS を通らず、ブラウザから Google へ直接送られます。
  * そのため大きな動画でもサイズ制限に引っかかりません。
+ *
+ * ただし Google はアップロード完了の応答に
+ * Access-Control-Allow-Origin を付けてこないため、
+ * ブラウザ側は成功しても結果を読めません。
+ * そこで action:'verify' で保存できたかを問い合わせられるようにしています。
  * ------------------------------------------------------------
  */
 
@@ -25,11 +30,19 @@ function doPost(e) {
   try {
     const req = JSON.parse(e.postData.contents);
 
+    // 1) アップロード先のURLを発行する
     if (req.action === 'start') {
+      const name = buildFileName(req.name);
       return json({
         ok: true,
-        uploadUrl: createResumableSession(req.name, req.mimeType),
+        name: name,
+        uploadUrl: createResumableSession(name, req.mimeType),
       });
+    }
+
+    // 2) 本当に保存できたかを確かめる
+    if (req.action === 'verify') {
+      return json({ ok: true, found: fileExists(req.name) });
     }
 
     return json({ ok: false, error: 'unknown action' });
@@ -40,13 +53,13 @@ function doPost(e) {
 
 
 /** Drive に「これから受け取る」と伝え、専用のアップロードURLを発行してもらう */
-function createResumableSession(rawName, mimeType) {
+function createResumableSession(name, mimeType) {
   if (FOLDER_ID.indexOf('PASTE_YOUR') === 0) {
     throw new Error('FOLDER_ID がまだ設定されていません');
   }
 
   const metadata = {
-    name: buildFileName(rawName),
+    name: name,
     parents: [FOLDER_ID],
   };
 
@@ -79,6 +92,14 @@ function createResumableSession(rawName, mimeType) {
 }
 
 
+/** 指定した名前のファイルがフォルダに存在するか */
+function fileExists(name) {
+  if (!name) return false;
+  const folder = DriveApp.getFolderById(FOLDER_ID);
+  return folder.getFilesByName(name).hasNext();
+}
+
+
 /** 送信日時を頭に付けて、名前の重複と並び順の乱れを防ぐ */
 function buildFileName(rawName) {
   const stamp = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyyMMdd_HHmmss');
@@ -96,25 +117,17 @@ function json(obj) {
 
 /**
  * 初回とスコープ変更後に、エディタから手動で 1 回実行してください。
- *
- * 1. FOLDER_ID が正しいか
- * 2. ドライブへの「書き込み」権限が下りているか
- * の両方を確認します。実行ログに「セットアップ完了」と出れば成功です。
- *
- * 権限の確認画面が出たら承認してください。承認を求められずに
- * 403 insufficient authentication scopes が出る場合は、
- * appsscript.json の oauthScopes が反映されていません。
+ * 実行ログに「セットアップ完了」と出れば成功です。
  */
 function setupCheck() {
   const folder = DriveApp.getFolderById(FOLDER_ID);
   Logger.log('保存先フォルダ: ' + folder.getName());
 
-  // 実際に書き込み用のアップロードURLを発行して、権限まで確かめる
-  const url = createResumableSession('setup_test.txt', 'text/plain');
+  const name = buildFileName('setup_test.txt');
+  const url = createResumableSession(name, 'text/plain');
   Logger.log('アップロードURLの発行: 成功');
 
-  // 発行しただけのセッションは中身を送らなければファイルになりません。
-  // 念のため明示的に取り消しておきます。
+  // 中身を送らなければファイルにはなりません。念のため取り消します。
   UrlFetchApp.fetch(url, { method: 'delete', muteHttpExceptions: true });
 
   Logger.log('セットアップ完了。ページから使えます。');

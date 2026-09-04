@@ -280,13 +280,22 @@ async function start(files) {
     const row = addRow(file);
     try {
       row.state.textContent = '準備中';
-      const uploadUrl = await createSession(file);
+      const session = await createSession(file);
 
       row.state.textContent = '0%';
-      await putFile(uploadUrl, file, (p) => {
-        row.state.textContent = p + '%';
-        row.fill.style.width = p + '%';
-      });
+      try {
+        await putFile(session.uploadUrl, file, (p) => {
+          row.state.textContent = p + '%';
+          row.fill.style.width = p + '%';
+        });
+      } catch (err) {
+        // Google は完了の応答にブラウザ向けの許可ヘッダを付けてこないため、
+        // 送信が成功していても失敗として飛んでくることがある。
+        // 実際に保存できたかを確認してから判断する。
+        row.state.textContent = '確認中';
+        const saved = await verify(session.name);
+        if (!saved) throw err;
+      }
 
       row.root.classList.add('done');
       row.state.textContent = '完了';
@@ -357,8 +366,29 @@ async function createSession(file) {
   if (!data.ok || !data.uploadUrl) {
     throw new Error(data.error || 'アップロードURLが返りませんでした');
   }
-  return data.uploadUrl;
+  return { uploadUrl: data.uploadUrl, name: data.name || '' };
 }
+
+/* 本当に Drive に保存できたかを GAS に問い合わせる */
+async function verify(name) {
+  if (!name) return false;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const res = await fetch(UPLOAD_GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'verify', name: name }),
+      });
+      const data = await res.json();
+      if (data && data.ok && data.found) return true;
+    } catch (e) {
+      /* 次の試行へ */
+    }
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  return false;
+}
+
 
 /* ファイル本体はブラウザから Google へ直接送る（GAS を経由しないので大きな動画も通る） */
 function putFile(uploadUrl, file, onProgress) {
