@@ -126,6 +126,16 @@ h1 {
 .item.done .item-state { color: var(--aqua); font-weight: 500; }
 .item.error .item-state { color: var(--pink); font-weight: 500; }
 
+.item-err {
+  display: none;
+  margin-top: 8px;
+  font-size: 0.68rem;
+  line-height: 1.7;
+  color: #d33b73;
+  word-break: break-all;
+}
+.item.error .item-err { display: block; }
+
 .bar { height: 5px; border-radius: 99px; background: var(--pink-soft); margin-top: 10px; overflow: hidden; }
 .bar span { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--pink), var(--purple)); transition: width 0.25s ease; }
 .item.done .bar span { background: linear-gradient(90deg, var(--aqua), var(--gold)); }
@@ -215,7 +225,8 @@ pickBtn.addEventListener('click', () => {
 
 fileInput.addEventListener('change', () => {
   const files = Array.from(fileInput.files || []);
-  fileInput.value = '';
+  // 送信し終わるまで input は空にしない。
+  // iOS では先に空にすると写真の実体が読めなくなることがある。
   if (files.length) start(files);
 });
 
@@ -237,13 +248,15 @@ function addRow(file) {
       '<span class="item-name"></span>' +
       '<span class="item-state">待機中</span>' +
     '</div>' +
-    '<div class="bar"><span></span></div>';
+    '<div class="bar"><span></span></div>' +
+    '<p class="item-err"></p>';
   el.querySelector('.item-name').textContent = file.name + '（' + fmtSize(file.size) + '）';
   listEl.appendChild(el);
   return {
     root: el,
     state: el.querySelector('.item-state'),
     fill: el.querySelector('.bar span'),
+    err: el.querySelector('.item-err'),
   };
 }
 
@@ -260,6 +273,7 @@ async function start(files) {
   window.addEventListener('beforeunload', warn);
 
   let ok = 0;
+  let firstError = '';
   const failed = [];
 
   for (const file of files) {
@@ -279,15 +293,19 @@ async function start(files) {
       row.fill.style.width = '100%';
       ok++;
     } catch (err) {
+      const msg = String((err && err.message) || err);
       row.root.classList.add('error');
       row.state.textContent = '失敗';
       row.fill.style.width = '100%';
+      row.err.textContent = msg;
       failed.push(file.name);
+      if (!firstError) firstError = msg;
     }
   }
 
   uploading = false;
   pickBtn.disabled = false;
+  fileInput.value = '';
   window.removeEventListener('beforeunload', warn);
 
   if (failed.length === 0) {
@@ -297,10 +315,14 @@ async function start(files) {
       '続けてアップロードもできます'
     );
   } else {
+    const esc = document.createElement('span');
+    esc.textContent = firstError;
     show(
       ok + '件は完了しましたが、' + failed.length + '件が失敗しました。<br>' +
       '電波の良い場所でもう一度お試しください。' +
-      '<br><button type="button" class="retry" onclick="document.getElementById(\'pickBtn\').click()">もう一度選ぶ</button>',
+      '<span style="display:block;margin-top:10px;font-size:0.7rem;opacity:0.85;word-break:break-all">' +
+      esc.innerHTML + '</span>' +
+      '<button type="button" class="retry" onclick="document.getElementById(\'pickBtn\').click()">もう一度選ぶ</button>',
       true
     );
   }
@@ -323,9 +345,18 @@ async function createSession(file) {
       size: file.size,
     }),
   });
-  if (!res.ok) throw new Error('session http ' + res.status);
-  const data = await res.json();
-  if (!data.ok || !data.uploadUrl) throw new Error(data.error || 'no upload url');
+  if (!res.ok) throw new Error('URL発行に失敗 HTTP ' + res.status);
+
+  const raw = await res.text();
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    throw new Error('想定外の応答: ' + raw.slice(0, 160));
+  }
+  if (!data.ok || !data.uploadUrl) {
+    throw new Error(data.error || 'アップロードURLが返りませんでした');
+  }
   return data.uploadUrl;
 }
 
@@ -343,10 +374,12 @@ function putFile(uploadUrl, file, onProgress) {
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error('upload http ' + xhr.status));
+      else reject(new Error('送信に失敗 HTTP ' + xhr.status + ' ' +
+        String(xhr.responseText || '').slice(0, 160)));
     };
-    xhr.onerror = () => reject(new Error('network error'));
-    xhr.ontimeout = () => reject(new Error('timeout'));
+    xhr.onerror = () => reject(new Error(
+      '送信中に通信が途切れました（接続が拒否されたか回線が不安定です）'));
+    xhr.ontimeout = () => reject(new Error('送信がタイムアウトしました'));
     xhr.send(file);
   });
 }
