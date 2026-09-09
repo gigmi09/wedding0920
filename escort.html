@@ -47,8 +47,10 @@ body {
   margin: 0 auto;
 }
 
-/* ── カードの枠 ── */
-.card {
+/* ── カードの枠（結果画面のときだけ付く） ── */
+.card { background: transparent; }
+
+.card.framed {
   border: 18px solid var(--frame);
   border-radius: 30px;
   background: #fff;
@@ -278,7 +280,7 @@ body {
 
 <div class="stage">
 <div class="wrap">
-<div class="card">
+<div class="card" id="card">
 
   <!-- ================= 入力画面 ================= -->
   <section id="askView">
@@ -357,6 +359,7 @@ const nameInput = document.getElementById('nameInput');
 const goBtn = document.getElementById('goBtn');
 const againBtn = document.getElementById('againBtn');
 const msgEl = document.getElementById('msg');
+const cardEl = document.getElementById('card');
 const cardSlot = document.getElementById('cardSlot');
 const tablesEl = document.getElementById('tables');
 
@@ -443,6 +446,7 @@ function render(table, tableId) {
 
   askView.hidden = true;
   resultView.hidden = false;
+  cardEl.classList.add('framed');
   window.scrollTo(0, 0);
 
   // 何度さがしても毎回アニメーションが動くようにする
@@ -462,6 +466,7 @@ nameInput.addEventListener('input', () => msgEl.classList.remove('show'));
 againBtn.addEventListener('click', () => {
   resultView.hidden = true;
   askView.hidden = false;
+  cardEl.classList.remove('framed');
   nameInput.value = '';
   msgEl.classList.remove('show');
   nameInput.focus();
