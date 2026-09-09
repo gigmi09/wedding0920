@@ -3,19 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#fffaf3">
+<meta name="theme-color" content="#ffffff">
 <title>Your Table | Fumito &amp; Risa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Caveat:wght@700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Caveat:wght@700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --red: #e0243c;
   --pink: #ff6b96;
-  --pink-soft: #ffd4e6;
   --purple: #a641e0;
   --gold: #c9a227;
-  --cream: #fffdf9;
   --ink: #1a1a1a;
   --text: #3f3357;
   --text-light: #8a7fa0;
@@ -29,7 +27,7 @@ html, body { height: 100%; }
 body {
   font-family: 'Noto Sans JP', sans-serif;
   color: var(--text);
-  background: var(--cream);
+  background: #fff;
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
 }
@@ -39,24 +37,22 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 16px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
 }
 
 .wrap {
   width: 100%;
   max-width: 380px;
   margin: 0 auto;
-  position: relative;
 }
 
-/* ── 見出し ── */
+/* ── 入力画面 ── */
 .head { position: relative; }
 
 .title {
   font-family: 'Playfair Display', serif;
   font-weight: 800;
   font-size: clamp(1.5rem, 7.6vw, 2rem);
-  letter-spacing: 0.005em;
   color: var(--ink);
   line-height: 1.1;
   white-space: nowrap;
@@ -64,14 +60,13 @@ body {
 
 .bird {
   position: absolute;
-  right: -6px;
+  right: -4px;
   top: -14px;
   width: clamp(46px, 15vw, 62px);
   transform: rotate(-6deg);
   pointer-events: none;
 }
 
-/* ── 入力画面 ── */
 .ask-lead {
   margin-top: 30px;
   font-size: 0.82rem;
@@ -132,71 +127,27 @@ body {
 .msg.show { display: block; }
 
 /* ── 結果画面 ── */
-.hero {
-  position: relative;
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* 上半分は画像そのまま。描画するのは卓の丸と here!! だけ */
+.card-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 56svh;
+  object-fit: contain;
+  margin: 0 auto;
 }
 
-.photo-frame {
-  width: clamp(126px, 40vw, 156px);
-  aspect-ratio: 1;
-  flex-shrink: 0;
-  border-radius: 46% 54% 50% 50% / 52% 48% 52% 48%;
-  overflow: hidden;
-  background: linear-gradient(140deg, var(--pink-soft), #e6dcff);
-  box-shadow: 0 8px 22px rgba(150,110,200,0.22);
+.card-fallback {
   display: grid;
   place-items: center;
-}
-.photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-.photo-frame .initial {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.6rem;
-  color: var(--purple);
-  opacity: 0.5;
-}
-
-.hero-right { flex: 1; min-width: 0; text-align: center; }
-
-.heart { width: 74px; margin: 0 auto; display: block; }
-
-.char-name {
-  margin-top: 4px;
-  font-size: clamp(1.02rem, 4.6vw, 1.24rem);
+  min-height: 34svh;
+  font-size: 1.3rem;
   font-weight: 700;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
   color: var(--red);
-  word-break: keep-all;
+  letter-spacing: 0.06em;
 }
 
-.dots {
-  margin: 16px 0 0;
-  height: 6px;
-  background-image: radial-gradient(circle, var(--red) 42%, transparent 44%);
-  background-size: 15px 6px;
-  background-repeat: repeat-x;
-  opacity: 0.85;
-}
-
-/* ── 会場図 ── */
-.floor { margin-top: 16px; }
-
-.top-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 14px;
-}
-.top-row svg { display: block; }
-
-.head-table { position: relative; }
-
-.tables { margin-top: 14px; }
+.tables { margin-top: clamp(10px, 3vw, 18px); }
 
 .table-row {
   display: flex;
@@ -213,9 +164,6 @@ body {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 0.62rem;
-  color: var(--text-light);
-  letter-spacing: 0.02em;
 }
 
 .seat.mine { border-color: var(--red); border-width: 2px; }
@@ -225,67 +173,6 @@ body {
   display: none;
   width: 56%;
   color: var(--ink);
-}
-
-/* ── 登場アニメーション ── */
-.play .hero,
-.play .dots,
-.play .floor {
-  animation: fadeUp 0.6s ease both;
-}
-.play .dots  { animation-delay: 0.08s; }
-.play .floor { animation-delay: 0.16s; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* 卓のしるしがふわっと現れる */
-.play .seat.mine .mark {
-  animation: markPop 0.72s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
-}
-
-@keyframes markPop {
-  0%   { opacity: 0; transform: scale(0.25) rotate(-16deg); }
-  55%  { opacity: 1; transform: scale(1.16) rotate(4deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0deg); }
-}
-
-/* しるしに合わせて輪が広がる */
-.play .seat.mine::after {
-  content: '';
-  position: absolute;
-  inset: -5px;
-  border-radius: 50%;
-  border: 2px solid var(--red);
-  opacity: 0;
-  animation: ring 1.3s ease-out 0.62s 2 both;
-  pointer-events: none;
-}
-
-@keyframes ring {
-  0%   { opacity: 0.7; transform: scale(0.82); }
-  100% { opacity: 0;   transform: scale(1.3); }
-}
-
-/* here!! は少し遅れて降りてくる */
-.play .seat.mine .here {
-  animation: hereIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 1.02s both;
-}
-
-@keyframes hereIn {
-  from { opacity: 0; transform: translateX(-58%) translateY(-9px) rotate(-8deg); }
-  to   { opacity: 1; transform: translateX(-58%) translateY(0) rotate(0deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .play .hero,
-  .play .dots,
-  .play .floor,
-  .play .seat.mine .mark,
-  .play .seat.mine .here { animation: none; }
-  .play .seat.mine::after { display: none; }
 }
 
 .here {
@@ -307,7 +194,7 @@ body {
   -webkit-appearance: none;
   appearance: none;
   display: block;
-  margin: 18px auto 0;
+  margin: clamp(12px, 3vw, 18px) auto 0;
   padding: 10px 26px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -319,6 +206,60 @@ body {
   cursor: pointer;
 }
 
+/* ── 登場アニメーション ── */
+.play .card-img,
+.play .card-fallback { animation: fadeUp 0.6s ease both; }
+.play .tables { animation: fadeUp 0.6s ease 0.14s both; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.play .seat.mine .mark {
+  animation: markPop 0.72s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+}
+
+@keyframes markPop {
+  0%   { opacity: 0; transform: scale(0.25) rotate(-16deg); }
+  55%  { opacity: 1; transform: scale(1.16) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.play .seat.mine::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--red);
+  opacity: 0;
+  animation: ring 1.3s ease-out 0.62s 2 both;
+  pointer-events: none;
+}
+
+@keyframes ring {
+  0%   { opacity: 0.7; transform: scale(0.82); }
+  100% { opacity: 0;   transform: scale(1.3); }
+}
+
+.play .seat.mine .here {
+  animation: hereIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 1.02s both;
+}
+
+@keyframes hereIn {
+  from { opacity: 0; transform: translateX(-58%) translateY(-9px) rotate(-8deg); }
+  to   { opacity: 1; transform: translateX(-58%) translateY(0) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play .card-img,
+  .play .card-fallback,
+  .play .tables,
+  .play .seat.mine .mark,
+  .play .seat.mine .here { animation: none; }
+  .play .seat.mine::after { display: none; }
+}
+
 [hidden] { display: none !important; }
 </style>
 </head>
@@ -327,13 +268,13 @@ body {
 <div class="stage">
 <div class="wrap">
 
-  <div class="head">
-    <h1 class="title">Your Table is ...</h1>
-    <img class="bird" src="img/bird.png" alt="">
-  </div>
-
   <!-- ================= 入力画面 ================= -->
   <section id="askView">
+    <div class="head">
+      <h1 class="title">Your Table is ...</h1>
+      <img class="bird" src="img/bird.png" alt="">
+    </div>
+
     <p class="ask-lead">
       お名前を <strong>ひらがな</strong> でご入力ください<br>
       <span class="ask-note">例：やまだ たろう</span>
@@ -349,50 +290,8 @@ body {
 
   <!-- ================= 結果画面 ================= -->
   <section id="resultView" hidden>
-
-    <div class="hero">
-      <div class="photo-frame" id="photoFrame"></div>
-      <div class="hero-right">
-        <svg class="heart" viewBox="0 0 120 96" fill="none" aria-hidden="true">
-          <path d="M8 88C34 66 58 52 66 34c6-14-2-26-14-26-10 0-16 8-16 18 0 18 20 30 40 34 22 4 38-6 40-22"
-                stroke="#e0243c" stroke-width="3.4" stroke-linecap="round"/>
-        </svg>
-        <p class="char-name" id="charName"></p>
-      </div>
-    </div>
-
-    <div class="dots"></div>
-
-    <div class="floor">
-      <!-- 高砂まわり -->
-      <div class="top-row">
-        <!-- ケーキ -->
-        <svg width="34" height="40" viewBox="0 0 34 40" fill="none" stroke="#8a7fa0" stroke-width="1.3">
-          <path d="M17 5v4M14 4l3-3 3 3"/>
-          <rect x="7" y="10" width="20" height="8" rx="2"/>
-          <rect x="3" y="18" width="28" height="9" rx="2"/>
-          <rect x="1" y="27" width="32" height="10" rx="2"/>
-        </svg>
-        <!-- 高砂 -->
-        <div class="head-table">
-          <svg width="96" height="46" viewBox="0 0 96 46" fill="none" stroke="#8a7fa0" stroke-width="1.3">
-            <circle cx="36" cy="11" r="5"/><path d="M31 18h10l3 10H28z"/>
-            <circle cx="60" cy="11" r="5"/><path d="M55 18h10l3 10H52z"/>
-            <path d="M4 29h88l-4 15H8z" fill="#fff"/>
-            <path d="M14 24c4-5 10-4 12 0M70 24c4-5 10-4 12 0"/>
-          </svg>
-        </div>
-        <!-- キャンドル -->
-        <svg width="26" height="40" viewBox="0 0 26 40" fill="none" stroke="#8a7fa0" stroke-width="1.3">
-          <path d="M13 3c3 4 4 6 4 8a4 4 0 1 1-8 0c0-2 1-4 4-8z"/>
-          <rect x="8" y="16" width="10" height="20" rx="2"/>
-        </svg>
-      </div>
-
-      <!-- テーブル -->
-      <div class="tables" id="tables"></div>
-    </div>
-
+    <div id="cardSlot"></div>
+    <div class="tables" id="tables"></div>
     <button type="button" class="again" id="againBtn">もう一度さがす</button>
   </section>
 
@@ -401,22 +300,25 @@ body {
 
 <script>
 /* ============================================================
-   1) テーブルの設定（★仮データ：実際の卓名と画像に差し替えます）
+   1) テーブルの設定
+      img に escort_img の画像を置くと、そのまま表示されます。
+      画像がない卓は、卓名を文字で表示します。
+      （★卓名は仮。実際のものに差し替えます）
    ============================================================ */
 const TABLES = {
-  t1: { label: 'ミッキーマウス', photo: '' },
-  t2: { label: 'ミニーマウス',   photo: '' },
-  t3: { label: 'ドナルドダック', photo: '' },
-  t4: { label: 'デイジーダック', photo: '' },
-  t5: { label: 'グーフィー',     photo: '' },
-  t6: { label: 'プルート',       photo: 'img/pluto_face.png' },
-  t7: { label: 'チップとデール', photo: '' },
+  mickey: { label: 'ミッキーマウス', img: 'escort_img/mickey.png' },
+  minnie: { label: 'ミニーマウス',   img: '' },
+  donald: { label: 'ドナルドダック', img: '' },
+  daisy:  { label: 'デイジーダック', img: '' },
+  goofy:  { label: 'グーフィー',     img: '' },
+  pluto:  { label: 'プルート',       img: '' },
+  chip:   { label: 'チップとデール', img: '' },
 };
 
-/* 会場の並び。高砂から見た配置に合わせて並べ替えます */
+/* 会場の並び。実際の配置に合わせて並べ替えます */
 const LAYOUT = [
-  ['t1', 't2', 't3', 't4'],
-  ['t5', 't6', 't7'],
+  ['mickey', 'minnie', 'donald', 'daisy'],
+  ['goofy', 'pluto', 'chip'],
 ];
 
 /* ============================================================
@@ -424,14 +326,14 @@ const LAYOUT = [
       キーはひらがな。姓名の間の空白は無視されます。
    ============================================================ */
 const GUESTS = {
-  'やまだたろう':   't1',
-  'やまだはなこ':   't1',
-  'すずきいちろう': 't2',
-  'たなかさくら':   't3',
-  'さとうけんた':   't4',
-  'いとうみさき':   't5',
-  'わたなべゆうき': 't6',
-  'なかむらあおい': 't7',
+  'やまだたろう':   'mickey',
+  'やまだはなこ':   'mickey',
+  'すずきいちろう': 'minnie',
+  'たなかさくら':   'donald',
+  'さとうけんた':   'daisy',
+  'いとうみさき':   'goofy',
+  'わたなべゆうき': 'pluto',
+  'なかむらあおい': 'chip',
 };
 
 /* ============================================================ */
@@ -442,8 +344,7 @@ const nameInput = document.getElementById('nameInput');
 const goBtn = document.getElementById('goBtn');
 const againBtn = document.getElementById('againBtn');
 const msgEl = document.getElementById('msg');
-const charName = document.getElementById('charName');
-const photoFrame = document.getElementById('photoFrame');
+const cardSlot = document.getElementById('cardSlot');
 const tablesEl = document.getElementById('tables');
 
 /* カタカナ・空白・記号を吸収してから照合する */
@@ -451,7 +352,7 @@ function normalize(s) {
   return String(s || '')
     .trim()
     .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
-    .replace(/[\s　・・,、.。]/g, '')
+    .replace(/[\s　・,、.。]/g, '')
     .toLowerCase();
 }
 
@@ -483,21 +384,23 @@ function search() {
 
 function render(table, tableId) {
   msgEl.classList.remove('show');
-  charName.textContent = table.label;
 
-  photoFrame.innerHTML = '';
-  if (table.photo) {
+  /* 上半分は画像をそのまま置く */
+  cardSlot.innerHTML = '';
+  if (table.img) {
     const img = document.createElement('img');
-    img.src = table.photo;
-    img.alt = table.label;
-    photoFrame.appendChild(img);
+    img.className = 'card-img';
+    img.src = table.img;
+    img.alt = 'あなたのテーブルは ' + table.label;
+    cardSlot.appendChild(img);
   } else {
-    const span = document.createElement('span');
-    span.className = 'initial';
-    span.textContent = table.label.slice(0, 1);
-    photoFrame.appendChild(span);
+    const div = document.createElement('div');
+    div.className = 'card-fallback';
+    div.textContent = table.label;
+    cardSlot.appendChild(div);
   }
 
+  /* 卓の丸と here!! だけを描画する */
   tablesEl.innerHTML = '';
   LAYOUT.forEach((row) => {
     const rowEl = document.createElement('div');
