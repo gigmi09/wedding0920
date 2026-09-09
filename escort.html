@@ -179,7 +179,7 @@ body {
   place-items: center;
 }
 
-.seat.mine { border-color: var(--red); border-width: 2px; }
+.seat.mine { border-color: var(--frame); border-width: 2px; }
 .seat.mine .mark { display: block; }
 
 .mark {
@@ -244,7 +244,7 @@ body {
   position: absolute;
   inset: -5px;
   border-radius: 50%;
-  border: 2px solid var(--red);
+  border: 2px solid var(--frame);
   opacity: 0;
   animation: ring 1.3s ease-out 0.62s 2 both;
   pointer-events: none;
@@ -329,19 +329,19 @@ body {
       （★卓名は仮。実際のものに差し替えます）
    ============================================================ */
 const TABLES = {
-  mickey: { label: 'ミッキーマウス', img: 'escort_img/mickey.png' },
-  minnie: { label: 'ミニーマウス',   img: '' },
-  donald: { label: 'ドナルドダック', img: '' },
-  daisy:  { label: 'デイジーダック', img: '' },
-  goofy:  { label: 'グーフィー',     img: '' },
-  pluto:  { label: 'プルート',       img: '' },
-  chip:   { label: 'チップとデール', img: '' },
+  donald: { label: 'ドナルドダック', img: 'escort_img/donald.png', color: '#416fd0' },
+  mickey: { label: 'ミッキーマウス', img: 'escort_img/mickey.png', color: '#e04049' },
+  minnie: { label: 'ミニーマウス',   img: 'escort_img/minnie.png', color: '#f265c4' },
+  pluto:  { label: 'プルート',       img: 'escort_img/pluto.png',  color: '#f9bd59' },
+  goofy:  { label: 'グーフィー',     img: 'escort_img/goofy.png',  color: '#467804' },
+  dale:   { label: 'デール',         img: 'escort_img/dale.png',   color: '#c79e55' },
+  chipp:  { label: 'チップ',         img: 'escort_img/chipp.png',  color: '#7c562d' },
 };
 
 /* 会場の並び。実際の配置に合わせて並べ替えます */
 const LAYOUT = [
-  ['mickey', 'minnie', 'donald', 'daisy'],
-  ['goofy', 'pluto', 'chip'],
+  ['donald', 'mickey', 'minnie', 'pluto'],
+  ['goofy', 'dale', 'chipp'],
 ];
 
 /* ============================================================
@@ -353,10 +353,10 @@ const GUESTS = {
   'やまだはなこ':   'mickey',
   'すずきいちろう': 'minnie',
   'たなかさくら':   'donald',
-  'さとうけんた':   'daisy',
+  'さとうけんた':   'pluto',
   'いとうみさき':   'goofy',
-  'わたなべゆうき': 'pluto',
-  'なかむらあおい': 'chip',
+  'わたなべゆうき': 'dale',
+  'なかむらあおい': 'chipp',
 };
 
 /* ============================================================ */
@@ -408,6 +408,9 @@ function search() {
 
 function render(table, tableId) {
   msgEl.classList.remove('show');
+
+  /* 枠と丸の色を卓ごとに切り替える */
+  cardEl.style.setProperty('--frame', table.color || '#e04049');
 
   /* 上半分は画像をそのまま置く */
   cardSlot.innerHTML = '';
