@@ -4,120 +4,487 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#fffaf3">
-<title>Escort | Fumito &amp; Risa</title>
+<title>Your Table | Fumito &amp; Risa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@300;400&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Caveat:wght@700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --pink: #ff4f9d;
+  --red: #e0243c;
+  --pink: #ff6b96;
   --pink-soft: #ffd4e6;
   --purple: #a641e0;
-  --grape: #7b34e0;
-  --aqua: #1fc8c2;
-  --gold: #ffbe2e;
-  --cream: #fffaf3;
+  --gold: #c9a227;
+  --cream: #fffdf9;
+  --ink: #1a1a1a;
   --text: #3f3357;
   --text-light: #8a7fa0;
-  --white: #ffffff;
+  --line: #d8cfe4;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
 
 body {
   font-family: 'Noto Sans JP', sans-serif;
   color: var(--text);
   background: var(--cream);
-  background-image:
-    radial-gradient(circle at 12% 8%, rgba(255,212,230,0.55), transparent 42%),
-    radial-gradient(circle at 88% 14%, rgba(166,65,224,0.14), transparent 45%),
-    radial-gradient(circle at 50% 100%, rgba(31,200,194,0.14), transparent 55%);
-  background-attachment: fixed;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+.stage {
   min-height: 100svh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  padding: 48px 20px calc(env(safe-area-inset-bottom, 0px) + 56px);
-  -webkit-text-size-adjust: 100%;
+  padding: 16px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
 
-.wrap { width: 100%; max-width: 460px; text-align: center; }
-
-.script {
-  font-family: 'Great Vibes', cursive;
-  font-size: 2.1rem;
-  color: var(--purple);
-  line-height: 1.2;
+.wrap {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  position: relative;
 }
 
-.date {
-  font-size: 0.7rem;
-  letter-spacing: 0.24em;
-  color: var(--text-light);
-  margin-top: 6px;
+/* ── 見出し ── */
+.head { position: relative; }
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: clamp(1.5rem, 7.6vw, 2rem);
+  letter-spacing: 0.005em;
+  color: var(--ink);
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
-.section-label {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.5rem;
-  letter-spacing: 0.2em;
-  color: var(--purple);
-  margin-top: 42px;
+.bird {
+  position: absolute;
+  right: -6px;
+  top: -14px;
+  width: clamp(46px, 15vw, 62px);
+  transform: rotate(-6deg);
+  pointer-events: none;
 }
 
-.divider {
-  margin: 14px 0 0;
-  font-size: 0.62rem;
-  letter-spacing: 0.5em;
-  color: var(--gold);
-}
-
-/* ── ここに中身を入れていく ── */
-.card {
-  margin-top: 32px;
-  padding: 48px 28px;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(4px);
-  border: 1px solid var(--pink-soft);
-  border-radius: 18px;
-  box-shadow: 0 12px 40px rgba(150,110,200,0.15);
-}
-
-.placeholder {
+/* ── 入力画面 ── */
+.ask-lead {
+  margin-top: 30px;
   font-size: 0.82rem;
-  line-height: 2.1;
-  color: var(--text-light);
-  letter-spacing: 0.04em;
+  line-height: 2;
+  letter-spacing: 0.03em;
 }
 
-footer {
-  margin-top: 44px;
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  color: var(--text-light);
+.ask-note { font-size: 0.71rem; color: var(--text-light); margin-top: 4px; }
+
+.field {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--text);
 }
+.field:focus { outline: none; border-color: var(--purple); }
+.field::placeholder { color: #c3bad3; letter-spacing: 0.06em; }
+
+.go {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin-top: 14px;
+  min-height: 60px;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pink), var(--purple) 60%, #7b34e0);
+  box-shadow: 0 10px 26px rgba(166,65,224,0.3);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.go:active { transform: scale(0.98); }
+
+.msg {
+  display: none;
+  margin-top: 16px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: #fdecf2;
+  color: #c22b58;
+  font-size: 0.76rem;
+  line-height: 1.9;
+}
+.msg.show { display: block; }
+
+/* ── 結果画面 ── */
+.hero {
+  position: relative;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.photo-frame {
+  width: clamp(126px, 40vw, 156px);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 46% 54% 50% 50% / 52% 48% 52% 48%;
+  overflow: hidden;
+  background: linear-gradient(140deg, var(--pink-soft), #e6dcff);
+  box-shadow: 0 8px 22px rgba(150,110,200,0.22);
+  display: grid;
+  place-items: center;
+}
+.photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.photo-frame .initial {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.6rem;
+  color: var(--purple);
+  opacity: 0.5;
+}
+
+.hero-right { flex: 1; min-width: 0; text-align: center; }
+
+.heart { width: 74px; margin: 0 auto; display: block; }
+
+.char-name {
+  margin-top: 4px;
+  font-size: clamp(1.02rem, 4.6vw, 1.24rem);
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: var(--red);
+  word-break: keep-all;
+}
+
+.dots {
+  margin: 16px 0 0;
+  height: 6px;
+  background-image: radial-gradient(circle, var(--red) 42%, transparent 44%);
+  background-size: 15px 6px;
+  background-repeat: repeat-x;
+  opacity: 0.85;
+}
+
+/* ── 会場図 ── */
+.floor { margin-top: 16px; }
+
+.top-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 14px;
+}
+.top-row svg { display: block; }
+
+.head-table { position: relative; }
+
+.tables { margin-top: 14px; }
+
+.table-row {
+  display: flex;
+  justify-content: center;
+  gap: clamp(10px, 3.4vw, 16px);
+}
+.table-row + .table-row { margin-top: clamp(10px, 3vw, 15px); }
+
+.seat {
+  position: relative;
+  width: clamp(52px, 16.5vw, 66px);
+  aspect-ratio: 1;
+  border: 1.6px solid var(--gold);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.62rem;
+  color: var(--text-light);
+  letter-spacing: 0.02em;
+}
+
+.seat.mine { border-color: var(--red); border-width: 2px; }
+.seat.mine .mark { display: block; }
+
+.mark {
+  display: none;
+  width: 56%;
+  color: var(--ink);
+}
+
+.here {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  transform: translateX(-58%);
+  font-family: 'Caveat', cursive;
+  font-size: 1.16rem;
+  color: var(--pink);
+  white-space: nowrap;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+}
+.here svg { width: 15px; margin-bottom: 1px; }
+
+.again {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  margin: 18px auto 0;
+  padding: 10px 26px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-light);
+  font-family: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+[hidden] { display: none !important; }
 </style>
 </head>
 <body>
 
+<div class="stage">
 <div class="wrap">
 
-  <p class="script">Fumito &amp; Risa</p>
-  <p class="date">2026 . 09 . 20</p>
-
-  <p class="section-label">Escort</p>
-  <div class="divider">✦ ✦ ✦</div>
-
-  <!-- ここから中身を作っていきます -->
-  <div class="card">
-    <p class="placeholder">
-      準備中です
-    </p>
+  <div class="head">
+    <h1 class="title">Your Table is ...</h1>
+    <img class="bird" src="img/bird.png" alt="">
   </div>
-  <!-- ここまで -->
 
-  <footer>Fumito &amp; Risa &nbsp;·&nbsp; 2026.09.20</footer>
+  <!-- ================= 入力画面 ================= -->
+  <section id="askView">
+    <p class="ask-lead">
+      お名前を <strong>ひらがな</strong> でご入力ください<br>
+      <span class="ask-note">例：やまだ たろう</span>
+    </p>
+
+    <input class="field" id="nameInput" type="text" autocomplete="off"
+           autocapitalize="off" spellcheck="false" placeholder="やまだ たろう">
+
+    <button type="button" class="go" id="goBtn">さがす</button>
+
+    <p class="msg" id="msg"></p>
+  </section>
+
+  <!-- ================= 結果画面 ================= -->
+  <section id="resultView" hidden>
+
+    <div class="hero">
+      <div class="photo-frame" id="photoFrame"></div>
+      <div class="hero-right">
+        <svg class="heart" viewBox="0 0 120 96" fill="none" aria-hidden="true">
+          <path d="M8 88C34 66 58 52 66 34c6-14-2-26-14-26-10 0-16 8-16 18 0 18 20 30 40 34 22 4 38-6 40-22"
+                stroke="#e0243c" stroke-width="3.4" stroke-linecap="round"/>
+        </svg>
+        <p class="char-name" id="charName"></p>
+      </div>
+    </div>
+
+    <div class="dots"></div>
+
+    <div class="floor">
+      <!-- 高砂まわり -->
+      <div class="top-row">
+        <!-- ケーキ -->
+        <svg width="34" height="40" viewBox="0 0 34 40" fill="none" stroke="#8a7fa0" stroke-width="1.3">
+          <path d="M17 5v4M14 4l3-3 3 3"/>
+          <rect x="7" y="10" width="20" height="8" rx="2"/>
+          <rect x="3" y="18" width="28" height="9" rx="2"/>
+          <rect x="1" y="27" width="32" height="10" rx="2"/>
+        </svg>
+        <!-- 高砂 -->
+        <div class="head-table">
+          <svg width="96" height="46" viewBox="0 0 96 46" fill="none" stroke="#8a7fa0" stroke-width="1.3">
+            <circle cx="36" cy="11" r="5"/><path d="M31 18h10l3 10H28z"/>
+            <circle cx="60" cy="11" r="5"/><path d="M55 18h10l3 10H52z"/>
+            <path d="M4 29h88l-4 15H8z" fill="#fff"/>
+            <path d="M14 24c4-5 10-4 12 0M70 24c4-5 10-4 12 0"/>
+          </svg>
+        </div>
+        <!-- キャンドル -->
+        <svg width="26" height="40" viewBox="0 0 26 40" fill="none" stroke="#8a7fa0" stroke-width="1.3">
+          <path d="M13 3c3 4 4 6 4 8a4 4 0 1 1-8 0c0-2 1-4 4-8z"/>
+          <rect x="8" y="16" width="10" height="20" rx="2"/>
+        </svg>
+      </div>
+
+      <!-- テーブル -->
+      <div class="tables" id="tables"></div>
+    </div>
+
+    <button type="button" class="again" id="againBtn">もう一度さがす</button>
+  </section>
 
 </div>
+</div>
+
+<script>
+/* ============================================================
+   1) テーブルの設定（★仮データ：実際の卓名と画像に差し替えます）
+   ============================================================ */
+const TABLES = {
+  t1: { label: 'ミッキーマウス', photo: '' },
+  t2: { label: 'ミニーマウス',   photo: '' },
+  t3: { label: 'ドナルドダック', photo: '' },
+  t4: { label: 'デイジーダック', photo: '' },
+  t5: { label: 'グーフィー',     photo: '' },
+  t6: { label: 'プルート',       photo: 'img/pluto_face.png' },
+  t7: { label: 'チップとデール', photo: '' },
+};
+
+/* 会場の並び。高砂から見た配置に合わせて並べ替えます */
+const LAYOUT = [
+  ['t1', 't2', 't3', 't4'],
+  ['t5', 't6', 't7'],
+];
+
+/* ============================================================
+   2) ゲスト名簿（★仮データ：53名の実際のお名前に差し替えます）
+      キーはひらがな。姓名の間の空白は無視されます。
+   ============================================================ */
+const GUESTS = {
+  'やまだたろう':   't1',
+  'やまだはなこ':   't1',
+  'すずきいちろう': 't2',
+  'たなかさくら':   't3',
+  'さとうけんた':   't4',
+  'いとうみさき':   't5',
+  'わたなべゆうき': 't6',
+  'なかむらあおい': 't7',
+};
+
+/* ============================================================ */
+
+const askView = document.getElementById('askView');
+const resultView = document.getElementById('resultView');
+const nameInput = document.getElementById('nameInput');
+const goBtn = document.getElementById('goBtn');
+const againBtn = document.getElementById('againBtn');
+const msgEl = document.getElementById('msg');
+const charName = document.getElementById('charName');
+const photoFrame = document.getElementById('photoFrame');
+const tablesEl = document.getElementById('tables');
+
+/* カタカナ・空白・記号を吸収してから照合する */
+function normalize(s) {
+  return String(s || '')
+    .trim()
+    .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s　・・,、.。]/g, '')
+    .toLowerCase();
+}
+
+function showMsg(html) {
+  msgEl.innerHTML = html;
+  msgEl.classList.add('show');
+}
+
+function search() {
+  const key = normalize(nameInput.value);
+
+  if (!key) {
+    showMsg('お名前をひらがなでご入力ください。');
+    return;
+  }
+
+  const tableId = GUESTS[key];
+  if (!tableId || !TABLES[tableId]) {
+    showMsg(
+      'お名前が見つかりませんでした。<br>' +
+      'ひらがなでご入力いただいているかご確認ください。<br>' +
+      'それでも出ない場合は、会場スタッフにお声がけください。'
+    );
+    return;
+  }
+
+  render(TABLES[tableId], tableId);
+}
+
+function render(table, tableId) {
+  msgEl.classList.remove('show');
+  charName.textContent = table.label;
+
+  photoFrame.innerHTML = '';
+  if (table.photo) {
+    const img = document.createElement('img');
+    img.src = table.photo;
+    img.alt = table.label;
+    photoFrame.appendChild(img);
+  } else {
+    const span = document.createElement('span');
+    span.className = 'initial';
+    span.textContent = table.label.slice(0, 1);
+    photoFrame.appendChild(span);
+  }
+
+  tablesEl.innerHTML = '';
+  LAYOUT.forEach((row) => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'table-row';
+
+    row.forEach((id) => {
+      const seat = document.createElement('div');
+      seat.className = 'seat' + (id === tableId ? ' mine' : '');
+
+      if (id === tableId) {
+        seat.innerHTML =
+          '<span class="here">here!!' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+            'stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M6 4c6 2 10 7 11 15"/><path d="M12 18l5 1 0-6"/></svg>' +
+          '</span>' +
+          '<svg class="mark" viewBox="0 0 24 24" fill="currentColor">' +
+            '<circle cx="5.6" cy="6.4" r="4.1"/><circle cx="18.4" cy="6.4" r="4.1"/>' +
+            '<circle cx="12" cy="15" r="6.6"/></svg>';
+      }
+
+      rowEl.appendChild(seat);
+    });
+
+    tablesEl.appendChild(rowEl);
+  });
+
+  askView.hidden = true;
+  resultView.hidden = false;
+  window.scrollTo(0, 0);
+}
+
+goBtn.addEventListener('click', search);
+
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); search(); }
+});
+
+nameInput.addEventListener('input', () => msgEl.classList.remove('show'));
+
+againBtn.addEventListener('click', () => {
+  resultView.hidden = true;
+  askView.hidden = false;
+  nameInput.value = '';
+  msgEl.classList.remove('show');
+  nameInput.focus();
+});
+</script>
 
 </body>
 </html>
