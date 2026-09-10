@@ -436,7 +436,7 @@ async function search() {
   }
 
   if (!(window.crypto && window.crypto.subtle)) {
-    showMsg('この端末ではお名前を照合できませんでした。<br>会場スタッフにお声がけください。');
+    showMsg('この端末ではお名前を照合できませんでした。<br>別のブラウザでお試しください。');
     return;
   }
 
@@ -450,8 +450,8 @@ async function search() {
     if (!tableId || !TABLES[tableId]) {
       showMsg(
         'お名前が見つかりませんでした。<br>' +
-        'ひらがなでご入力いただいているかご確認ください。<br>' +
-        'それでも出ない場合は、会場スタッフにお声がけください。'
+        '姓と名を、ひらがなでご入力ください。<br>' +
+        'それでも出ない場合は、新郎新婦までお知らせください。'
       );
       return;
     }
