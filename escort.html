@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#fffaf3">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <title>Your Table | Fumito &amp; Risa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -125,6 +126,7 @@ body {
   touch-action: manipulation;
 }
 .go:active { transform: scale(0.98); }
+.go:disabled { opacity: 0.6; transform: none; }
 
 .msg {
   display: none;
@@ -345,18 +347,68 @@ const LAYOUT = [
 ];
 
 /* ============================================================
-   2) ゲスト名簿（★仮データ：53名の実際のお名前に差し替えます）
-      キーはひらがな。姓名の間の空白は無視されます。
+   2) ゲスト名簿
+      名前そのものは持たず、一方向に変換した文字列だけを置いています。
+      ここから元の名前を読み取ることはできません。
    ============================================================ */
+const SALT = '8249a23ba8fc2cfe7da1023a8620f89f';
+const ITERATIONS = 600000;
+
+/* 変換後の文字列のみ。元の名前は復元できません */
 const GUESTS = {
-  'やまだたろう':   'mickey',
-  'やまだはなこ':   'mickey',
-  'すずきいちろう': 'minnie',
-  'たなかさくら':   'donald',
-  'さとうけんた':   'pluto',
-  'いとうみさき':   'goofy',
-  'わたなべゆうき': 'dale',
-  'なかむらあおい': 'chipp',
+  '58991336aaa37e6450b8bbd478022fcf': 'pluto',
+  'e9db23b998cc7c6c7a903bbb2edde4ff': 'donald',
+  '97e92c577e65d6e93d70ae6726f5f31e': 'dale',
+  'ab29f89b48f91edc562611d6546310ea': 'goofy',
+  '1306153cc743ce8bbff45a8ce940c607': 'chipp',
+  'd15998bcb351bcd4f3af90e0ec81940e': 'pluto',
+  '8316f2f198c264237f5eaf3101da4c06': 'pluto',
+  '126411596ee23684105ba3f1d7a02e66': 'donald',
+  '93569a900b9f15a298d8e3389ae687dd': 'minnie',
+  '5372249363b1a0c1e3d688cdbdc5827a': 'goofy',
+  'f4be5657ebf1c9b0796c436f9394387c': 'mickey',
+  '4a931a08380e36553e9f3a00615e9e69': 'dale',
+  '3877ea687cd7e65400d7c8b2ee3afadb': 'donald',
+  '1b5a34bafd3a38307aa2c09fc731f39f': 'dale',
+  'ab34c46db80a38033e90f50a4d4e86bb': 'minnie',
+  '92b82bff98daf56b8dec50ee3526c088': 'pluto',
+  'bc1cb4533853afc1166f1fc005dc868f': 'mickey',
+  'c90a3c27723368a958eb9d60d814f380': 'goofy',
+  '140e8d4ae8e1e10eb58ccf2a04832790': 'minnie',
+  '70402338bf3709a53402c96cd495c45c': 'pluto',
+  '7cadf247e0f115d9c7db426c0bbf17f4': 'donald',
+  'ad9ee2df4ca0907877f0204b721c8d25': 'dale',
+  'a03ec2f69fe71f26b1c6f3ef32c5e480': 'mickey',
+  'a7b2f14d7d9ce6570f8000acba0e1173': 'mickey',
+  'b019290a8b69ea861ba083a0492f2d24': 'chipp',
+  'a72c572751d08c78d923aaea38144291': 'donald',
+  '96dbda0ed070b52844a1bce945af0e45': 'minnie',
+  'c5f6e9363f612454d06277ffa294ce65': 'donald',
+  '7851908ae57d1d0369584311e91fe1d8': 'dale',
+  '597030121abdd4be1773c699a0e7a1b0': 'goofy',
+  '0956e50f35297ebe9e0646c643d18607': 'chipp',
+  '5a29765e8a0fd585a10efb862b442998': 'minnie',
+  'f16641748f9f440688f8500e414d8e39': 'minnie',
+  '25a6d0c7094617f0aaf1bc894be9d493': 'mickey',
+  '00ac3e63a8a93f545aff4d09dc0cf1bb': 'pluto',
+  '1823fe90074e383b982f07e678c14bd7': 'chipp',
+  '7d44156db8edc1f4fa316b6904bb6b0c': 'minnie',
+  '5d0dd37d31a5cbca6b93f06f241bd58a': 'chipp',
+  'e246be69bf33f3bd184cc0c88bd3be5c': 'donald',
+  '15367bdef0f519cdb3d86baf192f9bfc': 'goofy',
+  'c83e382f0d8283ce32da13ac39df5269': 'donald',
+  'd575f9dd7d11ee1eb81ea6d02dad1d18': 'goofy',
+  'df4fb4d52ddc4c01c41526082ced10ca': 'mickey',
+  '1716d17ddc1861d1a48815ac55822b79': 'mickey',
+  'b8bb8783373120301ae8c080c0225592': 'minnie',
+  '8d63d54a6fd4068ef18d34258ece2206': 'goofy',
+  '4fbe601cebd93bfd54299ef718d5d342': 'pluto',
+  'bbc0fa422418f51c28bbb299ae8cf9e1': 'goofy',
+  'f83f080e729795c72e450b050a99bd8c': 'goofy',
+  '4c720d7605bd167f715a8dbf6e317fce': 'mickey',
+  '8c21a1042f3fa7f86f132265b34e2d26': 'donald',
+  '75afffdc3c3750b6ce81136b4d189453': 'pluto',
+  '1d88ee17f652de4623b85287ef37249e': 'chipp',
 };
 
 /* ============================================================ */
@@ -385,25 +437,58 @@ function showMsg(html) {
   msgEl.classList.add('show');
 }
 
-function search() {
-  const key = normalize(nameInput.value);
+/* 入力された名前を、名簿と同じ方法で変換する */
+async function digestOf(text) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(text), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode(SALT), iterations: ITERATIONS, hash: 'SHA-256' },
+    key, 128);
+  return Array.from(new Uint8Array(bits))
+    .map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
-  if (!key) {
+let searching = false;
+
+async function search() {
+  if (searching) return;
+
+  const name = normalize(nameInput.value);
+  if (!name) {
     showMsg('お名前をひらがなでご入力ください。');
     return;
   }
 
-  const tableId = GUESTS[key];
-  if (!tableId || !TABLES[tableId]) {
-    showMsg(
-      'お名前が見つかりませんでした。<br>' +
-      'ひらがなでご入力いただいているかご確認ください。<br>' +
-      'それでも出ない場合は、会場スタッフにお声がけください。'
-    );
+  if (!(window.crypto && window.crypto.subtle)) {
+    showMsg('この端末ではお名前を照合できませんでした。<br>会場スタッフにお声がけください。');
     return;
   }
 
-  render(TABLES[tableId], tableId);
+  searching = true;
+  goBtn.disabled = true;
+  goBtn.textContent = 'さがしています';
+
+  try {
+    const tableId = GUESTS[await digestOf(name)];
+
+    if (!tableId || !TABLES[tableId]) {
+      showMsg(
+        'お名前が見つかりませんでした。<br>' +
+        'ひらがなでご入力いただいているかご確認ください。<br>' +
+        'それでも出ない場合は、会場スタッフにお声がけください。'
+      );
+      return;
+    }
+
+    render(TABLES[tableId], tableId);
+  } catch (e) {
+    showMsg('照合できませんでした。<br>もう一度お試しください。');
+  } finally {
+    searching = false;
+    goBtn.disabled = false;
+    goBtn.textContent = 'さがす';
+  }
 }
 
 function render(table, tableId) {
