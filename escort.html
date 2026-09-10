@@ -48,7 +48,6 @@ body {
   margin: 0 auto;
 }
 
-/* ── カードの枠（結果画面のときだけ付く） ── */
 .card { background: transparent; }
 
 .card.framed {
@@ -59,7 +58,6 @@ body {
   box-shadow: 0 10px 30px rgba(224, 64, 73, 0.10);
 }
 
-/* ── 入力画面 ── */
 .head { position: relative; }
 
 .title {
@@ -140,8 +138,6 @@ body {
 }
 .msg.show { display: block; }
 
-/* ── 結果画面 ── */
-/* 上半分は画像そのまま。描画するのは卓の丸と here!! だけ */
 .card-img {
   display: block;
   width: 100%;
@@ -161,7 +157,6 @@ body {
   letter-spacing: 0.06em;
 }
 
-/* here!! は丸の上に出るので、画像に重ならないだけの余白を取る */
 .tables { margin-top: clamp(34px, 9vw, 48px); }
 
 .table-row {
@@ -221,7 +216,6 @@ body {
   cursor: pointer;
 }
 
-/* ── 登場アニメーション ── */
 .play .card-img,
 .play .card-fallback { animation: fadeUp 0.6s ease both; }
 .play .tables { animation: fadeUp 0.6s ease 0.14s both; }
@@ -257,7 +251,6 @@ body {
   100% { opacity: 0;   transform: scale(1.3); }
 }
 
-/* 降りてきたあと、そのまま点滅し続ける */
 .play .seat.mine .here {
   animation:
     hereIn 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 1.02s both,
@@ -292,7 +285,6 @@ body {
 <div class="wrap">
 <div class="card" id="card">
 
-  <!-- ================= 入力画面 ================= -->
   <section id="askView">
     <div class="head">
       <h1 class="title">Your Table is ...</h1>
@@ -312,7 +304,6 @@ body {
     <p class="msg" id="msg"></p>
   </section>
 
-  <!-- ================= 結果画面 ================= -->
   <section id="resultView" hidden>
     <div id="cardSlot"></div>
     <div class="tables" id="tables"></div>
@@ -324,12 +315,7 @@ body {
 </div>
 
 <script>
-/* ============================================================
-   1) テーブルの設定
-      img に escort_img の画像を置くと、そのまま表示されます。
-      画像がない卓は、卓名を文字で表示します。
-      （★卓名は仮。実際のものに差し替えます）
-   ============================================================ */
+
 const TABLES = {
   donald: { label: 'ドナルドダック', img: 'escort_img/donald.png', color: '#416fd0' },
   mickey: { label: 'ミッキーマウス', img: 'escort_img/mickey.png', color: '#e04049' },
@@ -340,21 +326,14 @@ const TABLES = {
   chipp:  { label: 'チップ',         img: 'escort_img/chipp.png',  color: '#7c562d' },
 };
 
-/* 会場の並び。実際の配置に合わせて並べ替えます */
 const LAYOUT = [
   ['donald', 'mickey', 'minnie', 'pluto'],
   ['goofy', 'dale', 'chipp'],
 ];
 
-/* ============================================================
-   2) ゲスト名簿
-      名前そのものは持たず、一方向に変換した文字列だけを置いています。
-      ここから元の名前を読み取ることはできません。
-   ============================================================ */
 const SALT = '8249a23ba8fc2cfe7da1023a8620f89f';
 const ITERATIONS = 600000;
 
-/* 変換後の文字列のみ。元の名前は復元できません */
 const GUESTS = {
   '58991336aaa37e6450b8bbd478022fcf': 'pluto',
   'e9db23b998cc7c6c7a903bbb2edde4ff': 'donald',
@@ -411,8 +390,6 @@ const GUESTS = {
   '1d88ee17f652de4623b85287ef37249e': 'chipp',
 };
 
-/* ============================================================ */
-
 const askView = document.getElementById('askView');
 const resultView = document.getElementById('resultView');
 const nameInput = document.getElementById('nameInput');
@@ -423,7 +400,6 @@ const cardEl = document.getElementById('card');
 const cardSlot = document.getElementById('cardSlot');
 const tablesEl = document.getElementById('tables');
 
-/* カタカナ・空白・記号を吸収してから照合する */
 function normalize(s) {
   return String(s || '')
     .trim()
@@ -437,7 +413,6 @@ function showMsg(html) {
   msgEl.classList.add('show');
 }
 
-/* 入力された名前を、名簿と同じ方法で変換する */
 async function digestOf(text) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -494,10 +469,8 @@ async function search() {
 function render(table, tableId) {
   msgEl.classList.remove('show');
 
-  /* 枠と丸の色を卓ごとに切り替える */
   cardEl.style.setProperty('--frame', table.color || '#e04049');
 
-  /* 上半分は画像をそのまま置く */
   cardSlot.innerHTML = '';
   if (table.img) {
     const img = document.createElement('img');
@@ -512,7 +485,6 @@ function render(table, tableId) {
     cardSlot.appendChild(div);
   }
 
-  /* 卓の丸と here!! だけを描画する */
   tablesEl.innerHTML = '';
   LAYOUT.forEach((row) => {
     const rowEl = document.createElement('div');
@@ -545,7 +517,6 @@ function render(table, tableId) {
   cardEl.classList.add('framed');
   window.scrollTo(0, 0);
 
-  // 何度さがしても毎回アニメーションが動くようにする
   resultView.classList.remove('play');
   void resultView.offsetWidth;
   resultView.classList.add('play');
