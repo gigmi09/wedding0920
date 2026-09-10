@@ -448,11 +448,7 @@ async function search() {
     const tableId = GUESTS[await digestOf(name)];
 
     if (!tableId || !TABLES[tableId]) {
-      showMsg(
-        'お名前が見つかりませんでした。<br>' +
-        '姓と名を、ひらがなでご入力ください。<br>' +
-        'それでも出ない場合は、新郎新婦までお知らせください。'
-      );
+      showMsg('お名前が見つかりませんでした。');
       return;
     }
 
