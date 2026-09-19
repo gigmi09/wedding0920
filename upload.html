@@ -147,6 +147,101 @@ h1 {
 }
 .now-uploading.show { display: block; }
 
+/* ── お名前の入力 ── */
+.ask-name {
+  margin-top: 34px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.ask-note {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  letter-spacing: 0.05em;
+}
+
+.field {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--pink-soft);
+  border-radius: 14px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--text);
+}
+.field:focus { outline: none; border-color: var(--purple); }
+.field::placeholder { color: #d8cbe4; }
+
+.next-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  margin-top: 14px;
+  min-height: 62px;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--pink), var(--purple) 60%, var(--grape));
+  box-shadow: 0 10px 26px rgba(166,65,224,0.3);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.next-btn:active { transform: scale(0.98); }
+
+.msg {
+  display: none;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fdecf2;
+  color: #c22b58;
+  font-size: 0.76rem;
+  line-height: 1.8;
+}
+.msg.show { display: block; }
+
+/* ── 送信者の表示 ── */
+.who {
+  margin-top: 30px;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+}
+.who b {
+  font-weight: 700;
+  color: var(--purple);
+  word-break: break-all;
+}
+
+.change {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: 26px;
+  padding: 9px 22px;
+  border: 1px solid var(--pink-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-light);
+  font-family: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+[hidden] { display: none !important; }
+
 /* ── ファイル一覧 ── */
 .list { margin-top: 32px; text-align: left; display: none; }
 .list.show { display: block; }
@@ -222,11 +317,29 @@ footer { margin-top: 44px; font-size: 0.66rem; letter-spacing: 0.16em; color: va
   <p class="script">Fumito &amp; Risa</p>
   <p class="date">2026 . 09 . 20</p>
 
-  <h1>当日のお写真・動画を<br>お寄せください</h1>
-  <p class="lead">
-    みなさまが撮ってくださった一枚が<br>
-    わたしたちの宝物になります
-  </p>
+  <section id="nameView">
+
+    <h1>当日のお写真・動画を<br>お寄せください</h1>
+    <p class="lead">
+      みなさまが撮ってくださった一枚が<br>
+      わたしたちの宝物になります
+    </p>
+
+    <p class="ask-name">お名前を教えてください</p>
+    <p class="ask-note">ニックネームOK！</p>
+
+    <input class="field" id="senderInput" type="text" autocomplete="off"
+           autocapitalize="off" spellcheck="false" maxlength="40" placeholder="おなまえ">
+
+    <button type="button" class="next-btn" id="nextBtn">つぎへ</button>
+
+    <p class="msg" id="nameMsg"></p>
+
+  </section>
+
+  <section id="uploadView" hidden>
+
+  <p class="who"><b id="whoName"></b> さん<br>ありがとうございます</p>
 
   <button type="button" class="upload-btn" id="pickBtn">
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -253,6 +366,10 @@ footer { margin-top: 44px; font-size: 0.66rem; letter-spacing: 0.16em; color: va
   <div class="list" id="list"></div>
   <div class="result" id="result"></div>
 
+  <button type="button" class="change" id="changeBtn">お名前を変更する</button>
+
+  </section>
+
   <footer>THANK YOU</footer>
 
 </div>
@@ -264,6 +381,13 @@ footer { margin-top: 44px; font-size: 0.66rem; letter-spacing: 0.16em; color: va
    ============================================================ */
 const UPLOAD_GAS_URL = 'https://script.google.com/macros/s/AKfycbzUZw-dUX4tkMTBSUcyUkwgJZk07Ptw3Mz8Q1YrAZligWqnkMtkojbrnAYt-gaITBWC/exec';
 
+const nameView = document.getElementById('nameView');
+const uploadView = document.getElementById('uploadView');
+const senderInput = document.getElementById('senderInput');
+const nextBtn = document.getElementById('nextBtn');
+const nameMsg = document.getElementById('nameMsg');
+const whoName = document.getElementById('whoName');
+const changeBtn = document.getElementById('changeBtn');
 const pickBtn = document.getElementById('pickBtn');
 const fileInput = document.getElementById('fileInput');
 const listEl = document.getElementById('list');
@@ -271,6 +395,63 @@ const nowEl = document.getElementById('nowUploading');
 const resultEl = document.getElementById('result');
 
 const MAX_ATTEMPTS = 3;
+const SENDER_KEY = 'wedding0920_sender';
+
+let sender = '';
+
+function cleanName(v) {
+  return String(v || '').replace(/[\r\n\t]/g, ' ').trim().slice(0, 40);
+}
+
+function rememberSender(v) {
+  try { localStorage.setItem(SENDER_KEY, v); } catch (e) { /* 保存できなくても続行 */ }
+}
+
+function recallSender() {
+  try { return localStorage.getItem(SENDER_KEY) || ''; } catch (e) { return ''; }
+}
+
+function toUploadView(name) {
+  sender = name;
+  whoName.textContent = name;
+  nameMsg.classList.remove('show');
+  nameView.hidden = true;
+  uploadView.hidden = false;
+}
+
+function toNameView() {
+  uploadView.hidden = true;
+  nameView.hidden = false;
+  senderInput.value = sender;
+  senderInput.focus();
+}
+
+nextBtn.addEventListener('click', () => {
+  const v = cleanName(senderInput.value);
+  if (!v) {
+    nameMsg.textContent = 'お名前を入れてください。';
+    nameMsg.classList.add('show');
+    return;
+  }
+  rememberSender(v);
+  toUploadView(v);
+});
+
+senderInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); nextBtn.click(); }
+});
+
+senderInput.addEventListener('input', () => nameMsg.classList.remove('show'));
+
+changeBtn.addEventListener('click', () => {
+  if (uploading) return;
+  toNameView();
+});
+
+(function restore() {
+  const saved = cleanName(recallSender());
+  if (saved) toUploadView(saved);
+})();
 
 // 種類が空で渡ってくる端末があるため、拡張子でも判断できるようにする
 const MEDIA_EXT = /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic|heif|mov|mp4|m4v|3gp|avi|mkv|webm|mpe?g|wmv)$/i;
@@ -433,6 +614,7 @@ async function createSession(file) {
       name: file.name,
       mimeType: file.type || 'application/octet-stream',
       size: file.size,
+      sender: sender,
     }),
   });
   if (!res.ok) throw new Error('URL発行に失敗 HTTP ' + res.status);
@@ -507,7 +689,7 @@ async function verify(name) {
       const res = await fetch(UPLOAD_GAS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'verify', name: name }),
+        body: JSON.stringify({ action: 'verify', name: name, sender: sender }),
       });
       const data = await res.json();
       if (data && data.ok && data.found) return true;

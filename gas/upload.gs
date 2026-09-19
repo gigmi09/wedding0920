@@ -4,6 +4,10 @@
  * upload.html から呼ばれ、Google ドライブの指定フォルダへ
  * ファイルを保存するためのアップロード用URLを発行します。
  *
+ * 送信者のお名前が渡された場合は、その名前のフォルダを
+ * 保存先フォルダの中に作り、そこへ入れていきます。
+ * 名前が渡されなかった場合は、これまでどおり直下に入ります。
+ *
  * ファイル本体は GAS を通らず、ブラウザから Google へ直接送られます。
  * そのため大きな動画でもサイズ制限に引っかかりません。
  *
@@ -39,13 +43,13 @@ function doPost(e) {
       return json({
         ok: true,
         name: name,
-        uploadUrl: createResumableSession(name, req.mimeType),
+        uploadUrl: createResumableSession(name, req.mimeType, folderFor(req.sender)),
       });
     }
 
     // 2) 本当に保存できたかを確かめる
     if (req.action === 'verify') {
-      return json({ ok: true, found: fileExists(req.name) });
+      return json({ ok: true, found: fileExists(req.name, req.sender) });
     }
 
     return json({ ok: false, error: 'unknown action' });
@@ -56,31 +60,55 @@ function doPost(e) {
 
 
 /**
- * 写真か動画かを判定する。
- * ページ側でも弾いているが、ページを経由しない送信を防ぐためここでも見る。
- * 端末によっては種類が空で届くので、その場合は拡張子で判断する。
+ * 送信者の名前のフォルダを返す。なければ作る。
+ * 同じ名前の人が同時に送っても二重に作られないよう、作成時だけ鍵をかける。
  */
-const MEDIA_EXT = /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic|heif|mov|mp4|m4v|3gp|avi|mkv|webm|mpe?g|wmv)$/i;
+function folderFor(sender) {
+  const label = folderLabel(sender);
+  if (!label) return FOLDER_ID;
 
-function isMediaRequest(name, mimeType) {
-  const t = String(mimeType || '').toLowerCase();
-  if (t.indexOf('image/') === 0 || t.indexOf('video/') === 0) return true;
-  if (!t || t === 'application/octet-stream') {
-    return MEDIA_EXT.test(String(name || ''));
+  const root = DriveApp.getFolderById(FOLDER_ID);
+
+  const found = root.getFoldersByName(label);
+  if (found.hasNext()) return found.next().getId();
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+
+    // 待っている間に他の人が作っているかもしれない
+    const again = root.getFoldersByName(label);
+    if (again.hasNext()) return again.next().getId();
+
+    return root.createFolder(label).getId();
+  } catch (err) {
+    const retry = root.getFoldersByName(label);
+    return retry.hasNext() ? retry.next().getId() : FOLDER_ID;
+  } finally {
+    try { lock.releaseLock(); } catch (ignore) {}
   }
-  return false;
+}
+
+
+/** フォルダ名に使えない文字を落とす */
+function folderLabel(sender) {
+  return String(sender || '')
+    .replace(/[\\\/:*?"<>|]/g, '_')
+    .replace(/[\r\n\t]/g, ' ')
+    .trim()
+    .slice(0, 40);
 }
 
 
 /** Drive に「これから受け取る」と伝え、専用のアップロードURLを発行してもらう */
-function createResumableSession(name, mimeType) {
+function createResumableSession(name, mimeType, folderId) {
   if (FOLDER_ID.indexOf('PASTE_YOUR') === 0) {
     throw new Error('FOLDER_ID がまだ設定されていません');
   }
 
   const metadata = {
     name: name,
-    parents: [FOLDER_ID],
+    parents: [folderId || FOLDER_ID],
   };
 
   const res = UrlFetchApp.fetch(
@@ -112,10 +140,27 @@ function createResumableSession(name, mimeType) {
 }
 
 
-/** 指定した名前のファイルがフォルダに存在するか */
-function fileExists(name) {
+/**
+ * 写真か動画かを判定する。
+ * ページ側でも弾いているが、ページを経由しない送信を防ぐためここでも見る。
+ * 端末によっては種類が空で届くので、その場合は拡張子で判断する。
+ */
+const MEDIA_EXT = /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic|heif|mov|mp4|m4v|3gp|avi|mkv|webm|mpe?g|wmv)$/i;
+
+function isMediaRequest(name, mimeType) {
+  const t = String(mimeType || '').toLowerCase();
+  if (t.indexOf('image/') === 0 || t.indexOf('video/') === 0) return true;
+  if (!t || t === 'application/octet-stream') {
+    return MEDIA_EXT.test(String(name || ''));
+  }
+  return false;
+}
+
+
+/** 指定した名前のファイルが、その送信者のフォルダに存在するか */
+function fileExists(name, sender) {
   if (!name) return false;
-  const folder = DriveApp.getFolderById(FOLDER_ID);
+  const folder = DriveApp.getFolderById(folderFor(sender));
   return folder.getFilesByName(name).hasNext();
 }
 
@@ -144,7 +189,7 @@ function setupCheck() {
   Logger.log('保存先フォルダ: ' + folder.getName());
 
   const name = buildFileName('setup_test.txt');
-  const url = createResumableSession(name, 'text/plain');
+  const url = createResumableSession(name, 'text/plain', FOLDER_ID);
   Logger.log('アップロードURLの発行: 成功');
 
   // 中身を送らなければファイルにはなりません。念のため取り消します。
