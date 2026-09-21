@@ -52,6 +52,11 @@ function doPost(e) {
       return json({ ok: true, found: fileExists(req.name, req.sender) });
     }
 
+    // 3) 複数まとめて確かめる（往復を1回で済ませる）
+    if (req.action === 'verifyMany') {
+      return json({ ok: true, found: foundAmong(req.names, req.sender) });
+    }
+
     return json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return json({ ok: false, error: String(err) });
@@ -162,6 +167,36 @@ function fileExists(name, sender) {
   if (!name) return false;
   const folder = DriveApp.getFolderById(folderFor(sender));
   return folder.getFilesByName(name).hasNext();
+}
+
+
+/**
+ * 渡された名前のうち、そのフォルダに実在するものだけを返す。
+ * フォルダを1回なめるだけなので、名前の数が増えても往復は1回で済む。
+ */
+function foundAmong(names, sender) {
+  const want = {};
+  let remaining = 0;
+  (names || []).forEach(function (n) {
+    if (n && !want[n]) { want[n] = true; remaining++; }
+  });
+  if (!remaining) return [];
+
+  const folder = DriveApp.getFolderById(folderFor(sender));
+  const files = folder.getFiles();
+  const found = [];
+  let scanned = 0;
+
+  while (files.hasNext() && remaining > 0 && scanned < 5000) {
+    const name = files.next().getName();
+    scanned++;
+    if (want[name]) {
+      found.push(name);
+      delete want[name];
+      remaining--;
+    }
+  }
+  return found;
 }
 
 

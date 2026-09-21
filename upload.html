@@ -392,9 +392,12 @@ const pickBtn = document.getElementById('pickBtn');
 const fileInput = document.getElementById('fileInput');
 const listEl = document.getElementById('list');
 const nowEl = document.getElementById('nowUploading');
+const NOW_TEXT = nowEl.textContent.trim();
 const resultEl = document.getElementById('result');
 
 const MAX_ATTEMPTS = 3;
+const PARALLEL = 3;
+const SESSION_AHEAD = 4;
 const SENDER_KEY = 'wedding0920_sender';
 
 let sender = '';
@@ -541,31 +544,48 @@ async function start(files, skipped) {
   pickBtn.disabled = true;
   resultEl.className = 'result';
   listEl.classList.add('show');
+  nowEl.textContent = NOW_TEXT;
   nowEl.classList.add('show');
   skipped.forEach(markSkipped);
   window.addEventListener('beforeunload', warn);
 
-  let ok = 0;
-  let firstError = '';
+  const rows = files.map(addRow);
+  const sessionFor = sessionPipeline(files, SESSION_AHEAD);
+
+  const sent = [];
   const failed = [];
+  let firstError = '';
 
-  for (const file of files) {
-    const row = addRow(file);
+  function markFailed(i, msg) {
+    const row = rows[i];
+    row.root.classList.remove('done');
+    row.root.classList.add('error');
+    row.state.textContent = '失敗';
+    row.fill.style.width = '100%';
+    row.err.textContent = msg;
+    failed.push(files[i].name);
+    if (!firstError) firstError = msg;
+  }
+
+  await runPool(files, async (i) => {
     try {
-      await uploadOne(file, row);
-
-      row.root.classList.add('done');
-      row.state.textContent = '完了';
-      row.fill.style.width = '100%';
-      ok++;
+      const done = await uploadOne(files[i], rows[i], sessionFor, i);
+      rows[i].root.classList.add('done');
+      rows[i].state.textContent = '完了';
+      rows[i].fill.style.width = '100%';
+      sent.push({ index: i, name: done.name, confirmed: done.confirmed });
     } catch (err) {
-      const msg = String((err && err.message) || err);
-      row.root.classList.add('error');
-      row.state.textContent = '失敗';
-      row.fill.style.width = '100%';
-      row.err.textContent = msg;
-      failed.push(file.name);
-      if (!firstError) firstError = msg;
+      markFailed(i, String((err && err.message) || err));
+    }
+  });
+
+  // 送り終えたぶんを、最後にまとめて1回だけ確認する
+  const pending = sent.filter((x) => !x.confirmed && x.name);
+  if (pending.length) {
+    nowEl.textContent = '保存を確認しています';
+    const found = await verifyAll(pending.map((x) => x.name));
+    for (const x of pending) {
+      if (!found.has(x.name)) markFailed(x.index, '保存を確認できませんでした');
     }
   }
 
@@ -573,15 +593,18 @@ async function start(files, skipped) {
   pickBtn.disabled = false;
   fileInput.value = '';
   nowEl.classList.remove('show');
+  nowEl.textContent = NOW_TEXT;
   window.removeEventListener('beforeunload', warn);
+
+  const okCount = rows.filter((r) => r.root.classList.contains('done')).length;
 
   const skipNote = skipped.length
     ? '<br>写真と動画以外の' + skipped.length + '件は送っていません'
     : '';
 
-  if (failed.length === 0) {
+  if (!failed.length) {
     show(
-      ok + '件をお送りいただきました<br>' +
+      okCount + '件をお送りいただきました<br>' +
       'ありがとうございます！<br>' +
       '続けてアップロードもできます' + skipNote
     );
@@ -589,7 +612,7 @@ async function start(files, skipped) {
     const esc = document.createElement('span');
     esc.textContent = firstError;
     show(
-      ok + '件は完了しましたが、' + failed.length + '件が失敗しました。<br>' +
+      okCount + '件は完了しましたが、' + failed.length + '件が失敗しました。<br>' +
       '電波の良い場所でもう一度お試しください。' + skipNote +
       '<span style="display:block;margin-top:10px;font-size:0.7rem;opacity:0.85;word-break:break-all">' +
       esc.innerHTML + '</span>' +
@@ -598,6 +621,54 @@ async function start(files, skipped) {
     );
   }
 }
+
+
+/* 決まった数だけ並行して処理する */
+async function runPool(files, handle) {
+  let next = 0;
+
+  async function worker() {
+    for (;;) {
+      const i = next++;
+      if (i >= files.length) return;
+      await handle(i);
+    }
+  }
+
+  const workers = [];
+  const width = Math.min(PARALLEL, files.length);
+  for (let k = 0; k < width; k++) workers.push(worker());
+  await Promise.all(workers);
+}
+
+
+/* 送信先URLを先回りして取っておく。転送中に次のURLが揃う */
+function sessionPipeline(files, ahead) {
+  const cache = new Map();
+  let next = 0;
+  let active = 0;
+
+  function pump() {
+    while (active < ahead && next < files.length) {
+      const i = next++;
+      active++;
+      const p = createSession(files[i]);
+      cache.set(i, p);
+      p.then(
+        () => { active--; pump(); },
+        () => { active--; pump(); }
+      );
+    }
+  }
+
+  pump();
+
+  return function (i) {
+    if (!cache.has(i)) cache.set(i, createSession(files[i]));
+    return cache.get(i);
+  };
+}
+
 
 function warn(e) {
   e.preventDefault();
@@ -633,41 +704,30 @@ async function createSession(file) {
 }
 
 /* 1ファイルを送る。失敗しても最大3回まで自動でやり直す */
-async function uploadOne(file, row) {
+async function uploadOne(file, row, sessionFor, index) {
   let lastError;
-  let lastName = '';
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    // 前回の試行が実は保存できていた場合、二重に送らない
-    if (lastName && (await verify(lastName))) return;
-
     try {
       row.state.textContent = attempt === 1 ? '準備中' : '再送信中';
       row.fill.style.width = '0%';
 
-      const session = await createSession(file);
-      lastName = session.name;
+      const session = attempt === 1
+        ? await sessionFor(index)
+        : await createSession(file);
 
       row.state.textContent = '0%';
-      try {
-        await putFile(session.uploadUrl, file, (p) => {
-          row.state.textContent = p + '%';
-          row.fill.style.width = p + '%';
-        });
-      } catch (err) {
-        // Google は完了の応答にブラウザ向けの許可ヘッダを付けてこないため、
-        // 送信が成功していても失敗として飛んでくることがある。
-        // 実際に保存できたかを確認してから判断する。
-        row.state.textContent = '確認中';
-        if (!(await verify(session.name))) throw err;
-      }
+      const how = await putFile(session.uploadUrl, file, (pct) => {
+        row.state.textContent = pct + '%';
+        row.fill.style.width = pct + '%';
+      });
 
-      return; // 成功
+      return { name: session.name, confirmed: how === 'confirmed' };
     } catch (err) {
       lastError = err;
       if (attempt < MAX_ATTEMPTS) {
         row.state.textContent = 'やり直します';
-        await sleep(attempt * 2500);
+        await sleep(attempt * 2000);
       }
     }
   }
@@ -682,23 +742,54 @@ function sleep(ms) {
 
 
 /* 本当に Drive に保存できたかを GAS に問い合わせる */
-async function verify(name) {
-  if (!name) return false;
-  for (let i = 0; i < 3; i++) {
-    try {
-      const res = await fetch(UPLOAD_GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'verify', name: name, sender: sender }),
-      });
-      const data = await res.json();
-      if (data && data.ok && data.found) return true;
-    } catch (e) {
-      /* 次の試行へ */
-    }
-    await new Promise((r) => setTimeout(r, 1500));
+async function verifyAll(names) {
+  const found = new Set();
+  if (!names.length) return found;
+
+  let missing = names.slice();
+
+  for (let round = 0; round < 2 && missing.length; round++) {
+    if (round) await sleep(1500);
+    const hit = await askFound(missing);
+    hit.forEach((n) => found.add(n));
+    missing = missing.filter((n) => !found.has(n));
   }
-  return false;
+
+  return found;
+}
+
+
+/* まとめて問い合わせる。古いバックエンドなら1件ずつ並行で聞く */
+async function askFound(names) {
+  try {
+    const res = await fetch(UPLOAD_GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'verifyMany', names: names, sender: sender }),
+    });
+    const data = await res.json();
+    if (data && data.ok && Array.isArray(data.found)) return data.found;
+  } catch (e) {
+    /* 1件ずつに切り替える */
+  }
+
+  const each = await Promise.all(names.map((n) => verifyOne(n).then((ok) => (ok ? n : null))));
+  return each.filter(Boolean);
+}
+
+
+async function verifyOne(name) {
+  try {
+    const res = await fetch(UPLOAD_GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'verify', name: name, sender: sender }),
+    });
+    const data = await res.json();
+    return !!(data && data.ok && data.found);
+  } catch (e) {
+    return false;
+  }
 }
 
 
@@ -706,25 +797,39 @@ async function verify(name) {
 function putFile(uploadUrl, file, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    let sentAll = false;
+
     xhr.open('PUT', uploadUrl, true);
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
 
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) {
-        onProgress(Math.min(99, Math.floor((e.loaded / e.total) * 100)));
-      }
+      if (!e.lengthComputable) return;
+      if (e.loaded >= e.total) sentAll = true;
+      onProgress(Math.min(99, Math.floor((e.loaded / e.total) * 100)));
     };
+    xhr.upload.onload = () => { sentAll = true; };
+
     xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      if (xhr.status >= 200 && xhr.status < 300) resolve('confirmed');
       else reject(new Error('送信に失敗 HTTP ' + xhr.status + ' ' +
         String(xhr.responseText || '').slice(0, 160)));
     };
-    xhr.onerror = () => reject(new Error(
-      '送信中に通信が途切れました（接続が拒否されたか回線が不安定です）'));
-    xhr.ontimeout = () => reject(new Error('送信がタイムアウトしました'));
+
+    // Google は完了の応答にブラウザ向けの許可ヘッダを付けてこない。
+    // 全部送り終えたあとのエラーは成功とみなし、最後にまとめて確かめる。
+    xhr.onerror = () => {
+      if (sentAll) resolve('sent');
+      else reject(new Error('送信中に通信が途切れました（回線が不安定です）'));
+    };
+    xhr.ontimeout = () => {
+      if (sentAll) resolve('sent');
+      else reject(new Error('送信がタイムアウトしました'));
+    };
+
     xhr.send(file);
   });
 }
+
 </script>
 
 </body>
