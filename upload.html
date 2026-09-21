@@ -147,6 +147,38 @@ h1 {
 }
 .now-uploading.show { display: block; }
 
+.counter {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter b {
+  font-size: 1.28rem;
+  color: var(--pink);
+}
+
+.total-bar {
+  display: block;
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+}
+
+.total-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--pink), var(--purple));
+  transition: width 0.3s ease;
+}
+
 /* ── お名前の入力 ── */
 .ask-name {
   margin-top: 34px;
@@ -360,7 +392,9 @@ footer { margin-top: 44px; font-size: 0.66rem; letter-spacing: 0.16em; color: va
   </ul>
 
   <div class="now-uploading" id="nowUploading">
-    送信中です。画面を消さずにお待ちください。
+    <span id="nowText">送信中です。画面を消さずにお待ちください。</span>
+    <span class="counter" id="counter"></span>
+    <span class="total-bar"><span id="totalFill"></span></span>
   </div>
 
   <div class="list" id="list"></div>
@@ -392,7 +426,10 @@ const pickBtn = document.getElementById('pickBtn');
 const fileInput = document.getElementById('fileInput');
 const listEl = document.getElementById('list');
 const nowEl = document.getElementById('nowUploading');
-const NOW_TEXT = nowEl.textContent.trim();
+const nowTextEl = document.getElementById('nowText');
+const counterEl = document.getElementById('counter');
+const totalFillEl = document.getElementById('totalFill');
+const NOW_TEXT = nowTextEl.textContent.trim();
 const resultEl = document.getElementById('result');
 
 const MAX_ATTEMPTS = 3;
@@ -483,6 +520,16 @@ fileInput.addEventListener('change', () => {
   start(files, skipped);
 });
 
+function setCounter(done, total) {
+  counterEl.innerHTML = '';
+  const strong = document.createElement('b');
+  strong.textContent = done + ' / ' + total;
+  counterEl.appendChild(strong);
+  counterEl.appendChild(document.createTextNode(' 件 処理しました'));
+  totalFillEl.style.width = (total ? (done / total) * 100 : 0) + '%';
+}
+
+
 function show(msg, bad) {
   resultEl.innerHTML = msg;
   resultEl.className = 'result show' + (bad ? ' bad' : '');
@@ -544,8 +591,9 @@ async function start(files, skipped) {
   pickBtn.disabled = true;
   resultEl.className = 'result';
   listEl.classList.add('show');
-  nowEl.textContent = NOW_TEXT;
+  nowTextEl.textContent = NOW_TEXT;
   nowEl.classList.add('show');
+  setCounter(0, files.length);
   skipped.forEach(markSkipped);
   window.addEventListener('beforeunload', warn);
 
@@ -567,6 +615,8 @@ async function start(files, skipped) {
     if (!firstError) firstError = msg;
   }
 
+  let processed = 0;
+
   await runPool(files, async (i) => {
     try {
       const done = await uploadOne(files[i], rows[i], sessionFor, i);
@@ -577,12 +627,14 @@ async function start(files, skipped) {
     } catch (err) {
       markFailed(i, String((err && err.message) || err));
     }
+    processed++;
+    setCounter(processed, files.length);
   });
 
   // 送り終えたぶんを、最後にまとめて1回だけ確認する
   const pending = sent.filter((x) => !x.confirmed && x.name);
   if (pending.length) {
-    nowEl.textContent = '保存を確認しています';
+    nowTextEl.textContent = '保存を確認しています';
     const found = await verifyAll(pending.map((x) => x.name));
     for (const x of pending) {
       if (!found.has(x.name)) markFailed(x.index, '保存を確認できませんでした');
@@ -593,7 +645,7 @@ async function start(files, skipped) {
   pickBtn.disabled = false;
   fileInput.value = '';
   nowEl.classList.remove('show');
-  nowEl.textContent = NOW_TEXT;
+  nowTextEl.textContent = NOW_TEXT;
   window.removeEventListener('beforeunload', warn);
 
   const okCount = rows.filter((r) => r.root.classList.contains('done')).length;
