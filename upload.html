@@ -147,6 +147,15 @@ h1 {
 }
 .now-uploading.show { display: block; }
 
+.now-uploading.finished {
+  background: linear-gradient(135deg, #d6f6f2, #fff1d2);
+  color: #0e8a84;
+}
+.now-uploading.finished .counter b { color: #0e8a84; }
+.now-uploading.finished .total-bar span {
+  background: linear-gradient(90deg, var(--aqua), var(--gold));
+}
+
 .counter {
   display: block;
   margin-top: 8px;
@@ -592,6 +601,7 @@ async function start(files, skipped) {
   resultEl.className = 'result';
   listEl.classList.add('show');
   nowTextEl.textContent = NOW_TEXT;
+  nowEl.classList.remove('finished');
   nowEl.classList.add('show');
   setCounter(0, files.length);
   skipped.forEach(markSkipped);
@@ -644,8 +654,9 @@ async function start(files, skipped) {
   uploading = false;
   pickBtn.disabled = false;
   fileInput.value = '';
-  nowEl.classList.remove('show');
-  nowTextEl.textContent = NOW_TEXT;
+  nowTextEl.textContent = '送信が終わりました';
+  nowEl.classList.add('finished');
+  setCounter(files.length, files.length);
   window.removeEventListener('beforeunload', warn);
 
   const okCount = rows.filter((r) => r.root.classList.contains('done')).length;
